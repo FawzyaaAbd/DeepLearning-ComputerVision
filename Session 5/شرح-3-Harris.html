@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>شرح - كشف الزوايا بخوارزمية Harris</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.9;
+      font-size: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    header {
+      background: linear-gradient(135deg, #3a1a1a, #7c2d12);
+      padding: 40px 32px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 1px solid #7c2d1255;
+    }
+    header h1 { font-size: 2rem; color: #fca5a5; margin-bottom: 10px; }
+    header p { color: #94a3b8; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      background: #7f1d1d;
+      color: #fecaca;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      margin-top: 12px;
+    }
+    .section {
+      background: #1a1f2e;
+      border: 1px solid #2a3450;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    .section h2 {
+      font-size: 1.35rem;
+      color: #f87171;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #7f1d1d;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h3 { font-size: 1.1rem; color: #fca5a5; margin: 20px 0 10px; }
+    .section p { color: #cbd5e1; margin-bottom: 12px; }
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      margin: 16px 0;
+    }
+    code { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #e6edf3; }
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .number  { color: #79c0ff; }
+    .output-box {
+      background: #161b22;
+      border-right: 4px solid #22c55e;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      direction: ltr;
+      text-align: left;
+      color: #86efac;
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+    .info-box {
+      background: #7f1d1d1a;
+      border: 1px solid #7c2d12;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fca5a5;
+    }
+    .info-box strong { color: #f87171; }
+    .warning-box {
+      background: #451a0322;
+      border: 1px solid #92400e;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fcd34d;
+    }
+    .success-box {
+      background: #14532d22;
+      border: 1px solid #166534;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #86efac;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #7f1d1d;
+      color: #fecaca;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #7f1d1d;
+      color: #fca5a5;
+      padding: 10px 14px;
+      text-align: right;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3450;
+      color: #cbd5e1;
+    }
+    tr:hover td { background: #1e2a3a; }
+    .region-box {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 14px 0;
+    }
+    .region {
+      flex: 1;
+      min-width: 160px;
+      background: #1e2438;
+      border-radius: 10px;
+      padding: 14px;
+      border: 1px solid #374151;
+      text-align: center;
+    }
+    .region .icon { font-size: 2rem; margin-bottom: 8px; }
+    .region .title { color: #f87171; font-weight: bold; font-size: 0.9rem; }
+    .region .desc { color: #94a3b8; font-size: 0.82rem; margin-top: 6px; }
+    footer {
+      text-align: center;
+      color: #475569;
+      padding: 30px;
+      font-size: 0.85rem;
+      border-top: 1px solid #2a3450;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>📐 كشف الزوايا — خوارزمية Harris</h1>
+    <p>الجلسة الخامسة — معالجة الصورة والرؤية الحاسوبية</p>
+    <span class="badge">3.ipynb — Harris Corner Detection</span>
+  </header>
+
+  <!-- ===== ما هي الزاوية ===== -->
+  <div class="section">
+    <h2><span class="step-num">١</span> ما هي "الزاوية" في الصورة ولماذا نهتم بها؟</h2>
+    <p>
+      في معالجة الصور، تُقسَّم مناطق الصورة إلى ثلاثة أنواع رئيسية بناءً على تغيرات الإضاءة:
+    </p>
+    <div class="region-box">
+      <div class="region">
+        <div class="icon">⬛</div>
+        <div class="title">منطقة مستوية Flat</div>
+        <div class="desc">لا تغيير في الإضاءة في كل الاتجاهات — مثل جدار أحادي اللون</div>
+      </div>
+      <div class="region">
+        <div class="icon">📏</div>
+        <div class="title">حافة Edge</div>
+        <div class="desc">تغيير حاد في اتجاه واحد فقط — مثل حد بين جسمين</div>
+      </div>
+      <div class="region">
+        <div class="icon">📍</div>
+        <div class="title">زاوية Corner</div>
+        <div class="desc">تغيير حاد في <strong>كل الاتجاهات</strong> — مثل ركن الغرفة أو طرف كتاب</div>
+      </div>
+    </div>
+    <div class="info-box">
+      <strong>لماذا الزوايا مميزة؟</strong><br/>
+      الزوايا هي نقاط "مميزة" (Distinctive Points) يمكن التعرف عليها بشكل موثوق حتى عند:
+      تغيير زاوية التصوير، التكبير والتصغير، والإضاءة المختلفة.
+      لذلك تُستخدم في مطابقة الصور وتتبع الأجسام.
+    </div>
+  </div>
+
+  <!-- ===== نظرية Harris ===== -->
+  <div class="section">
+    <h2><span class="step-num">٢</span> نظرية خوارزمية Harris</h2>
+    <p>
+      طوّر Chris Harris و Mike Stephens هذه الخوارزمية عام 1988.
+      الفكرة الأساسية: إذا أخذنا نافذة صغيرة (مربع صغير من البيكسلات) وحركناها قليلاً في أي اتجاه:
+    </p>
+    <table>
+      <tr><th>نوع المنطقة</th><th>ما يحدث عند تحريك النافذة</th></tr>
+      <tr><td>Flat (مستوية)</td><td>لا تغيير تقريباً — النافذة تبدو نفسها في كل الاتجاهات</td></tr>
+      <tr><td>Edge (حافة)</td><td>تغيير كبير في اتجاه واحد فقط (عمودي على الحافة)</td></tr>
+      <tr><td>Corner (زاوية)</td><td>تغيير كبير في <strong>جميع الاتجاهات</strong></td></tr>
+    </table>
+    <p>
+      الخوارزمية تحسب <strong>مصفوفة M</strong> تصف شكل التغيير المحلي، ثم تحسب
+      <strong>قيمة R (Harris Response)</strong> لكل بيكسل.
+    </p>
+    <div class="info-box">
+      <strong>قيمة R:</strong><br/>
+      — R كبيرة وموجبة ← زاوية (Corner)<br/>
+      — R سلبية كبيرة ← حافة (Edge)<br/>
+      — R صغيرة قريبة من الصفر ← منطقة مستوية (Flat)
+    </div>
+  </div>
+
+  <!-- ===== شرح الكود ===== -->
+  <div class="section">
+    <h2><span class="step-num">٣</span> شرح الكود سطراً بسطر</h2>
+    <pre><code><span class="keyword">import</span> cv2
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+img = cv2.<span class="func">imread</span>(<span class="string">'image.jpg'</span>)
+gray = cv2.<span class="func">cvtColor</span>(img, cv2.COLOR_BGR2GRAY)
+
+<span class="comment"># تطبيق Harris</span>
+corners = cv2.<span class="func">cornerHarris</span>(gray, <span class="number">2</span>, <span class="number">3</span>, <span class="number">0.04</span>)
+
+<span class="comment"># تحديد الزوايا</span>
+img[corners > <span class="number">0.01</span> * corners.<span class="func">max</span>()] = [<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>]
+
+cv2.<span class="func">imshow</span>(<span class="string">'Corners'</span>, img)
+cv2.<span class="func">waitKey</span>(<span class="number">0</span>)
+cv2.<span class="func">destroyAllWindows</span>()</code></pre>
+
+    <h3>🔹 <code>cv2.imread('image.jpg')</code> — بدون 0</h3>
+    <p>
+      هنا نقرأ الصورة <strong>ملونة (BGR)</strong> لأننا سنرسم عليها نقاط حمراء لتمييز الزوايا.
+      إذا قرأناها بالرمادي (0)، لن يمكننا رسم اللون الأحمر.
+    </p>
+
+    <h3>🔹 <code>cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)</code></h3>
+    <p>
+      تحويل الصورة من BGR إلى Grayscale. نحتاج النسخة الرمادية للخوارزمية،
+      لكن نحتفظ بالنسخة الملونة <code>img</code> لرسم النقاط عليها لاحقاً.
+    </p>
+
+    <h3>🔹 <code>cv2.cornerHarris(gray, 2, 3, 0.04)</code></h3>
+    <div class="info-box">
+      <strong>المعامل الأول (gray):</strong> الصورة بالرمادي<br/>
+      <strong>المعامل الثاني (blockSize = 2):</strong> حجم الجوار — يعني نافذة 2×2 لحساب التغيرات المحلية. قيم شائعة: 2، 3، 5<br/>
+      <strong>المعامل الثالث (ksize = 3):</strong> حجم نواة Sobel لحساب المشتقات. يجب أن يكون فردياً: 3، 5، 7<br/>
+      <strong>المعامل الرابع (k = 0.04):</strong> معامل Harris الحساس — قيمة ثابتة بين 0.04 و 0.06
+    </div>
+
+    <h3>🔹 <code>corners > 0.01 * corners.max()</code></h3>
+    <p>
+      هذا الشرط يُصفّي النقاط:
+    </p>
+    <ul style="color:#cbd5e1; padding-right:20px; margin-bottom:12px;">
+      <li><code>corners.max()</code> = أعلى قيمة R في الصورة (أقوى زاوية)</li>
+      <li>نأخذ فقط النقاط التي قيمتها تتجاوز <strong>1% من القيمة القصوى</strong></li>
+      <li>هذا يتجاهل الزوايا الضعيفة والضوضاء</li>
+    </ul>
+    <div class="warning-box">
+      ⚠️ إذا غيّرنا <code>0.01</code> إلى <code>0.1</code> → نقاط أقل (فقط الزوايا القوية جداً)<br/>
+      إذا غيّرنا إلى <code>0.001</code> → نقاط أكثر (تشمل حواف ضعيفة)
+    </div>
+
+    <h3>🔹 <code>img[...] = [0, 0, 255]</code></h3>
+    <p>
+      رسم نقاط حمراء على الصورة الملونة. في نظام BGR:
+      <code>[0, 0, 255]</code> = أزرق: 0، أخضر: 0، أحمر: 255 = <strong>لون أحمر</strong>.
+    </p>
+
+    <h3>🔹 <code>cv2.imshow('Corners', img)</code></h3>
+    <p>عرض الصورة في نافذة منفصلة بعنوان "Corners".</p>
+
+    <h3>🔹 <code>cv2.waitKey(0)</code></h3>
+    <p>انتظار ضغطة أي مفتاح من لوحة المفاتيح قبل الإغلاق. الـ <code>0</code> تعني انتظار إلى الأبد.</p>
+
+    <h3>🔹 <code>cv2.destroyAllWindows()</code></h3>
+    <p>إغلاق جميع نوافذ OpenCV وتحرير الذاكرة.</p>
+  </div>
+
+  <!-- ===== تطبيقات ===== -->
+  <div class="section">
+    <h2><span class="step-num">٤</span> تطبيقات كشف الزوايا في الحياة الواقعية</h2>
+    <table>
+      <tr><th>التطبيق</th><th>كيف تُستخدم الزوايا</th></tr>
+      <tr><td>مطابقة الصور (Image Matching)</td><td>تحديد نقاط مشتركة بين صورتين لنفس المشهد</td></tr>
+      <tr><td>واقع معزز (Augmented Reality)</td><td>تتبع موقع الكاميرا في الفراغ</td></tr>
+      <tr><td>الصور البانورامية</td><td>إيجاد نقاط التطابق لدمج الصور</td></tr>
+      <tr><td>التعرف على الكائنات</td><td>مميزات ثابتة لا تتغير مع الدوران والتكبير</td></tr>
+      <tr><td>قياس الأبعاد</td><td>تحديد أركان الأشكال الهندسية</td></tr>
+    </table>
+  </div>
+
+  <!-- ===== الكود الكامل ===== -->
+  <div class="section">
+    <h2><span class="step-num">٥</span> الكود الكامل مع الشرح</h2>
+    <pre><code><span class="keyword">import</span> cv2
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># الخطوة 1: قراءة الصورة ملونة (لرسم النقاط الحمراء لاحقاً)</span>
+img = cv2.<span class="func">imread</span>(<span class="string">'image.jpg'</span>)
+
+<span class="comment"># الخطوة 2: تحويل إلى رمادي للخوارزمية</span>
+gray = cv2.<span class="func">cvtColor</span>(img, cv2.COLOR_BGR2GRAY)
+
+<span class="comment"># الخطوة 3: تطبيق Harris</span>
+<span class="comment"># blockSize=2, Sobel ksize=3, Harris k=0.04</span>
+corners = cv2.<span class="func">cornerHarris</span>(gray, <span class="number">2</span>, <span class="number">3</span>, <span class="number">0.04</span>)
+<span class="comment"># corners هي مصفوفة نفس حجم الصورة، كل قيمة = قوة الزاوية</span>
+
+<span class="comment"># الخطوة 4: تلوين الزوايا القوية باللون الأحمر</span>
+<span class="comment"># الزوايا التي قيمتها > 1% من القيمة القصوى</span>
+img[corners > <span class="number">0.01</span> * corners.<span class="func">max</span>()] = [<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>]
+
+<span class="comment"># الخطوة 5: عرض النتيجة</span>
+cv2.<span class="func">imshow</span>(<span class="string">'Corners'</span>, img)
+cv2.<span class="func">waitKey</span>(<span class="number">0</span>)
+cv2.<span class="func">destroyAllWindows</span>()</code></pre>
+
+    <div class="success-box">
+      ✅ <strong>خلاصة:</strong> Harris Corner Detection تجد النقاط المميزة في الصورة حيث يتغير
+      الإضاء في كل الاتجاهات. هذه النقاط قوية ومستقرة وتُستخدم في مطابقة الصور والتتبع.
+    </div>
+  </div>
+
+  <footer>
+    <p>معالجة الصورة والرؤية الحاسوبية — الجلسة الخامسة — 2025/2026</p>
+  </footer>
+</div>
+</body>
+</html>

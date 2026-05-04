@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>شرح - MNIST والانحدار اللوجستي</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.9;
+      font-size: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    header {
+      background: linear-gradient(135deg, #1a1a3a, #312e81);
+      padding: 40px 32px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 1px solid #312e8155;
+    }
+    header h1 { font-size: 2rem; color: #a5b4fc; margin-bottom: 10px; }
+    header p { color: #94a3b8; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      background: #312e81;
+      color: #c7d2fe;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      margin-top: 12px;
+      margin-left: 6px;
+    }
+    .section {
+      background: #1a1f2e;
+      border: 1px solid #2a3450;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    .section h2 {
+      font-size: 1.35rem;
+      color: #818cf8;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #312e81;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h3 { font-size: 1.1rem; color: #a5b4fc; margin: 20px 0 10px; }
+    .section p { color: #cbd5e1; margin-bottom: 12px; }
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      margin: 16px 0;
+    }
+    code { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #e6edf3; }
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .number  { color: #79c0ff; }
+    .output-box {
+      background: #161b22;
+      border-right: 4px solid #22c55e;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      direction: ltr;
+      text-align: left;
+      color: #86efac;
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+    .info-box {
+      background: #312e811a;
+      border: 1px solid #3730a3;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #a5b4fc;
+    }
+    .info-box strong { color: #818cf8; }
+    .warning-box {
+      background: #451a0322;
+      border: 1px solid #92400e;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fcd34d;
+    }
+    .success-box {
+      background: #14532d22;
+      border: 1px solid #166534;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #86efac;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #312e81;
+      color: #c7d2fe;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #312e81;
+      color: #a5b4fc;
+      padding: 10px 14px;
+      text-align: right;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3450;
+      color: #cbd5e1;
+    }
+    tr:hover td { background: #1e2a3a; }
+    .ml-pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 16px 0;
+    }
+    .ml-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #1e2438;
+      border-radius: 8px;
+      padding: 12px 16px;
+    }
+    .ml-step-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .ml-step-title { color: #818cf8; font-weight: bold; font-size: 0.9rem; }
+    .ml-step-desc { color: #64748b; font-size: 0.82rem; }
+    footer {
+      text-align: center;
+      color: #475569;
+      padding: 30px;
+      font-size: 0.85rem;
+      border-top: 1px solid #2a3450;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🔢 MNIST والانحدار اللوجستي</h1>
+    <p>الجلسة الخامسة — معالجة الصورة والرؤية الحاسوبية</p>
+    <span class="badge">8-1-ml.ipynb</span>
+    <span class="badge">Logistic Regression</span>
+  </header>
+
+  <!-- ===== ما هو MNIST ===== -->
+  <div class="section">
+    <h2><span class="step-num">١</span> ما هو مجموعة بيانات MNIST؟</h2>
+    <p>
+      <strong>MNIST = Modified National Institute of Standards and Technology</strong>
+    </p>
+    <p>
+      هي مجموعة البيانات الأشهر في مجال تعلم الآلة ومعالجة الصورة.
+      تحتوي على صور يدوية للأرقام من 0 إلى 9.
+    </p>
+    <table>
+      <tr><th>التفصيل</th><th>القيمة</th></tr>
+      <tr><td>حجم صورة التدريب</td><td>60,000 صورة</td></tr>
+      <tr><td>حجم صورة الاختبار</td><td>10,000 صورة</td></tr>
+      <tr><td>أبعاد كل صورة</td><td>28 × 28 بيكسل — رمادي</td></tr>
+      <tr><td>عدد الفئات</td><td>10 فئات (0, 1, 2, ..., 9)</td></tr>
+      <tr><td>قيم البيكسلات</td><td>من 0 (أسود) إلى 255 (أبيض)</td></tr>
+      <tr><td>مصدر البيانات</td><td>الطلاب والموظفون الأمريكيون، جُمعت في التسعينيات</td></tr>
+    </table>
+    <div class="info-box">
+      <strong>لماذا MNIST مشهورة جداً؟</strong><br/>
+      — بسيطة بما يكفي للتجربة السريعة<br/>
+      — كافية بما يكفي لاختبار الخوارزميات الحقيقية<br/>
+      — أصبحت "Hello World" لتعلم الآلة — كل مبتدئ يبدأ بها!
+    </div>
+  </div>
+
+  <!-- ===== الكود الأول ===== -->
+  <div class="section">
+    <h2><span class="step-num">٢</span> تحميل البيانات وعرضها</h2>
+    <pre><code><span class="keyword">from</span> tensorflow.keras.datasets <span class="keyword">import</span> mnist
+
+(x_train, y_train), (x_test, y_test) = mnist.<span class="func">load_data</span>()
+
+<span class="func">print</span>(x_train.shape)  <span class="comment"># (60000, 28, 28)</span>
+<span class="func">print</span>(y_train.shape)  <span class="comment"># (60000,)</span></code></pre>
+    <div class="output-box">(60000, 28, 28)
+(60000,)</div>
+
+    <h3>🔹 <code>from tensorflow.keras.datasets import mnist</code></h3>
+    <p>
+      استيراد مجموعة MNIST من مكتبة TensorFlow/Keras. تكمل الدالة تحميل الملف تلقائياً من الإنترنت
+      في أول استخدام وتخزنه محلياً.
+    </p>
+
+    <h3>🔹 <code>mnist.load_data()</code></h3>
+    <div class="info-box">
+      ترجع tuple مزدوجاً:<br/>
+      <strong>(x_train, y_train)</strong> — بيانات التدريب: الصور والتسميات<br/>
+      <strong>(x_test, y_test)</strong> — بيانات الاختبار: الصور والتسميات<br/><br/>
+      <strong>x_train.shape = (60000, 28, 28)</strong>:<br/>
+      — 60,000 صورة<br/>
+      — كل صورة 28 سطر × 28 عمود<br/><br/>
+      <strong>y_train.shape = (60000,)</strong>:<br/>
+      — 60,000 تسمية (رقم واحد لكل صورة من 0 إلى 9)
+    </div>
+
+    <pre><code><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+plt.<span class="func">imshow</span>(x_train[<span class="number">0</span>], cmap=<span class="string">'gray'</span>)
+plt.<span class="func">title</span>(<span class="string">f"Label: {y_train[0]}"</span>)
+plt.<span class="func">axis</span>(<span class="string">'off'</span>)
+plt.<span class="func">show</span>()</code></pre>
+    <p>
+      يعرض الصورة الأولى في مجموعة التدريب مع تسميتها. الصورة الأولى هي الرقم <strong>5</strong>.
+    </p>
+  </div>
+
+  <!-- ===== الكود الثاني ===== -->
+  <div class="section">
+    <h2><span class="step-num">٣</span> خط أنابيب تعلم الآلة الكامل</h2>
+    <pre><code><span class="keyword">from</span> tensorflow.keras.datasets <span class="keyword">import</span> mnist
+<span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LogisticRegression
+<span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> accuracy_score
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+(x_train, y_train), (x_test, y_test) = mnist.<span class="func">load_data</span>()
+
+<span class="comment"># 1) تسطيح الصور</span>
+x_train_flat = x_train.<span class="func">reshape</span>(<span class="number">60000</span>, <span class="number">28</span> * <span class="number">28</span>)
+x_test_flat  = x_test.<span class="func">reshape</span>(<span class="number">10000</span>, <span class="number">28</span> * <span class="number">28</span>)
+x_train_flat.shape  <span class="comment"># (60000, 784)</span></code></pre>
+    <div class="output-box">(60000, 784)</div>
+
+    <h3>🔹 <code>x_train.reshape(60000, 28 * 28)</code></h3>
+    <div class="info-box">
+      تحويل شكل المصفوفة من (60000, 28, 28) إلى (60000, 784):<br/>
+      — 60,000 صورة<br/>
+      — كل صورة 28 × 28 = 784 بيكسل في صف واحد<br/>
+      الانحدار اللوجستي يحتاج كل عينة كمتجه أحادي البُعد.
+    </div>
+
+    <pre><code><span class="comment"># 2) تطبيع القيم من 0-255 إلى 0-1</span>
+x_train_flat = x_train_flat / <span class="number">255.0</span>
+x_test_flat  = x_test_flat  / <span class="number">255.0</span></code></pre>
+    <h3>🔹 التطبيع (Normalization)</h3>
+    <p>
+      قسمة كل قيمة على 255 يحوّل النطاق من [0, 255] إلى [0.0, 1.0].
+    </p>
+    <div class="warning-box">
+      ⚠️ <strong>لماذا التطبيع مهم جداً؟</strong><br/>
+      — معظم خوارزميات تعلم الآلة تعمل بشكل أفضل مع قيم صغيرة (0-1)<br/>
+      — تمنع هيمنة الميزات ذات القيم الكبيرة<br/>
+      — تُسرّع التقارب أثناء التدريب<br/>
+      — بدون تطبيع، الانحدار اللوجستي قد لا يتقارب أبداً!
+    </div>
+  </div>
+
+  <!-- ===== الانحدار اللوجستي ===== -->
+  <div class="section">
+    <h2><span class="step-num">٤</span> ما هو الانحدار اللوجستي؟</h2>
+    <p>
+      على الرغم من اسمه، الانحدار اللوجستي هو في الواقع خوارزمية <strong>تصنيف</strong> وليس انحداراً!
+      يُستخدم للتنبؤ بأي فئة تنتمي إليها العينة.
+    </p>
+    <div class="info-box">
+      <strong>كيف يعمل؟</strong><br/>
+      — يحسب مزيجاً خطياً من الميزات: z = w₁x₁ + w₂x₂ + ... + wₙxₙ + b<br/>
+      — يُمرّر z عبر دالة sigmoid: σ(z) = 1/(1 + e⁻ᶻ) → ترجع قيمة بين 0 و 1<br/>
+      — في التصنيف متعدد الفئات (مثل MNIST): يُنشئ نموذجاً لكل فئة ويختار الأعلى احتمالاً<br/>
+      — يتعلم الأوزان (weights) بتقليل خطأ Cross-Entropy
+    </div>
+
+    <pre><code><span class="comment"># 3) إنشاء النموذج</span>
+model = <span class="func">LogisticRegression</span>(max_iter=<span class="number">1000</span>)
+
+<span class="comment"># 4) تدريب النموذج</span>
+model.<span class="func">fit</span>(x_train_flat, y_train)</code></pre>
+
+    <h3>🔹 <code>LogisticRegression(max_iter=1000)</code></h3>
+    <div class="info-box">
+      <strong>max_iter=1000:</strong> الحد الأقصى للتكرارات. الافتراضي 100 وهو أقل جداً لـ MNIST.
+      بدون هذا، ستظهر رسالة تحذير: "Increase the number of iterations."<br/>
+      <strong>خوارزمية الحل الافتراضية:</strong> lbfgs — أسرع وأكثر كفاءة للبيانات الكبيرة.
+    </div>
+
+    <h3>🔹 <code>model.fit(x_train_flat, y_train)</code></h3>
+    <p>
+      تدريب النموذج:
+    </p>
+    <ul style="color:#cbd5e1; padding-right:20px; margin-bottom:12px;">
+      <li>المُدخل الأول: مصفوفة الميزات (60,000 × 784)</li>
+      <li>المُدخل الثاني: مصفوفة التسميات (60,000 رقم من 0-9)</li>
+      <li>الخوارزمية تتعلم الأوزان المثلى لكل فئة</li>
+    </ul>
+  </div>
+
+  <!-- ===== التقييم والتنبؤ ===== -->
+  <div class="section">
+    <h2><span class="step-num">٥</span> التقييم والتنبؤ</h2>
+    <pre><code><span class="comment"># 5) تقييم النموذج</span>
+y_pred = model.<span class="func">predict</span>(x_test_flat)
+accuracy = <span class="func">accuracy_score</span>(y_test, y_pred)
+<span class="func">print</span>(<span class="string">"Accuracy:"</span>, accuracy)
+
+<span class="comment"># 6) تجربة صورة جديدة</span>
+index = <span class="number">0</span>
+new_image = x_test[index]
+new_image_flat = new_image.<span class="func">reshape</span>(<span class="number">1</span>, <span class="number">28</span> * <span class="number">28</span>) / <span class="number">255.0</span>
+
+prediction = model.<span class="func">predict</span>(new_image_flat)
+
+<span class="func">print</span>(<span class="string">"Predicted digit:"</span>, prediction[<span class="number">0</span>])
+<span class="func">print</span>(<span class="string">"Real digit:"</span>, y_test[index])
+
+<span class="comment"># 7) عرض الصورة</span>
+plt.<span class="func">imshow</span>(new_image, cmap=<span class="string">"gray"</span>)
+plt.<span class="func">title</span>(<span class="string">f"Predicted: {prediction[0]} | Real: {y_test[index]}"</span>)
+plt.<span class="func">axis</span>(<span class="string">"off"</span>)
+plt.<span class="func">show</span>()</code></pre>
+
+    <h3>🔹 <code>model.predict(x_test_flat)</code></h3>
+    <p>
+      تطبيق النموذج المدرَّب على بيانات الاختبار.
+      ترجع مصفوفة من التنبؤات — رقم واحد (0-9) لكل صورة.
+    </p>
+
+    <h3>🔹 <code>accuracy_score(y_test, y_pred)</code></h3>
+    <p>
+      حساب نسبة الدقة:
+      <strong>عدد التنبؤات الصحيحة ÷ إجمالي التنبؤات</strong>
+    </p>
+
+    <h3>🔹 <code>new_image.reshape(1, 28 * 28)</code></h3>
+    <div class="info-box">
+      <strong>لماذا (1, 784) وليس (784,)؟</strong><br/>
+      الـ <code>1</code> يمثل "عينة واحدة". النموذج يتوقع مصفوفة ثنائية الأبعاد:
+      (عدد العينات, عدد الميزات). للتنبؤ بصورة واحدة نمررها كمصفوفة فيها صف واحد.
+    </div>
+
+    <h3>🔹 <code>f"Predicted: {prediction[0]} | Real: {y_test[index]}"</code></h3>
+    <p>
+      <strong>f-string</strong>: طريقة Python لدمج متغيرات في نص.
+      تعرض الرقم المتنبأ به والرقم الحقيقي في عنوان الصورة.
+    </p>
+  </div>
+
+  <!-- ===== خلاصة خط الأنابيب ===== -->
+  <div class="section">
+    <h2><span class="step-num">٦</span> ملخص خط أنابيب تعلم الآلة</h2>
+    <div class="ml-pipeline">
+      <div class="ml-step">
+        <div class="ml-step-icon">📥</div>
+        <div>
+          <div class="ml-step-title">1. تحميل البيانات</div>
+          <div class="ml-step-desc">mnist.load_data() → 60K تدريب + 10K اختبار</div>
+        </div>
+      </div>
+      <div class="ml-step">
+        <div class="ml-step-icon">🔄</div>
+        <div>
+          <div class="ml-step-title">2. المعالجة المسبقة</div>
+          <div class="ml-step-desc">reshape (28×28→784) + تطبيع (/255)</div>
+        </div>
+      </div>
+      <div class="ml-step">
+        <div class="ml-step-icon">🧠</div>
+        <div>
+          <div class="ml-step-title">3. اختيار النموذج</div>
+          <div class="ml-step-desc">LogisticRegression(max_iter=1000)</div>
+        </div>
+      </div>
+      <div class="ml-step">
+        <div class="ml-step-icon">🏋️</div>
+        <div>
+          <div class="ml-step-title">4. التدريب</div>
+          <div class="ml-step-desc">model.fit(x_train_flat, y_train)</div>
+        </div>
+      </div>
+      <div class="ml-step">
+        <div class="ml-step-icon">🎯</div>
+        <div>
+          <div class="ml-step-title">5. التقييم</div>
+          <div class="ml-step-desc">predict + accuracy_score → ~92% دقة</div>
+        </div>
+      </div>
+      <div class="ml-step">
+        <div class="ml-step-icon">🔍</div>
+        <div>
+          <div class="ml-step-title">6. التنبؤ</div>
+          <div class="ml-step-desc">model.predict(new_image_flat) → رقم واحد</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="success-box">
+      ✅ <strong>النتيجة المتوقعة:</strong> الانحدار اللوجستي مع البيكسلات الخام يحقق دقة تقارب
+      <strong>92%</strong> على MNIST — نتيجة جيدة لأبسط طريقة ممكنة!
+    </div>
+  </div>
+
+  <footer>
+    <p>معالجة الصورة والرؤية الحاسوبية — الجلسة الخامسة — 2025/2026</p>
+  </footer>
+</div>
+</body>
+</html>

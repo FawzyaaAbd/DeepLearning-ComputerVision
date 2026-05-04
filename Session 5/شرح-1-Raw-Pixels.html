@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>شرح - استخراج البيكسلات الخام كميزات</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.9;
+      font-size: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    header {
+      background: linear-gradient(135deg, #1e3a5f, #2d6a9f);
+      padding: 40px 32px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 1px solid #2d6a9f55;
+    }
+    header h1 { font-size: 2rem; color: #93c5fd; margin-bottom: 10px; }
+    header p { color: #94a3b8; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      background: #1e40af;
+      color: #bfdbfe;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      margin-top: 12px;
+    }
+    .section {
+      background: #1a1f2e;
+      border: 1px solid #2a3450;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    .section h2 {
+      font-size: 1.35rem;
+      color: #60a5fa;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #1e40af;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h3 { font-size: 1.1rem; color: #93c5fd; margin: 20px 0 10px; }
+    .section p { color: #cbd5e1; margin-bottom: 12px; }
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      margin: 16px 0;
+      position: relative;
+    }
+    code { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #e6edf3; }
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .number  { color: #79c0ff; }
+    .output-box {
+      background: #161b22;
+      border-right: 4px solid #22c55e;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      direction: ltr;
+      text-align: left;
+      color: #86efac;
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+    .info-box {
+      background: #1e3a5f22;
+      border: 1px solid #2d6a9f;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #93c5fd;
+    }
+    .info-box strong { color: #60a5fa; }
+    .warning-box {
+      background: #451a0322;
+      border: 1px solid #92400e;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fcd34d;
+    }
+    .success-box {
+      background: #14532d22;
+      border: 1px solid #166534;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #86efac;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #1e40af;
+      color: #bfdbfe;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #1e3a5f;
+      color: #93c5fd;
+      padding: 10px 14px;
+      text-align: right;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3450;
+      color: #cbd5e1;
+    }
+    tr:hover td { background: #1e2a3a; }
+    .tag { color: #f472b6; }
+    footer {
+      text-align: center;
+      color: #475569;
+      padding: 30px;
+      font-size: 0.85rem;
+      border-top: 1px solid #2a3450;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>📘 استخراج البيكسلات الخام كميزات</h1>
+    <p>الجلسة الخامسة — معالجة الصورة والرؤية الحاسوبية</p>
+    <span class="badge">1.ipynb — Raw Pixel Feature Extraction</span>
+  </header>
+
+  <!-- ===== المفهوم العام ===== -->
+  <div class="section">
+    <h2><span class="step-num">١</span> ما هي "استخراج الميزات" Feature Extraction؟</h2>
+    <p>
+      في تعلم الآلة ومعالجة الصورة، لا يمكننا إدخال الصورة مباشرةً إلى النموذج الرياضي لأنها مصفوفة ثنائية الأبعاد (أو ثلاثية).
+      نحتاج إلى تحويلها إلى <strong>متجه رقمي أحادي البُعد</strong> يسمى <em>متجه الميزات (Feature Vector)</em>.
+    </p>
+    <div class="info-box">
+      <strong>الفكرة الأساسية:</strong> كل صورة = مجموعة من الأرقام (قيم البيكسلات). يمكننا أخذ هذه الأرقام وتسطيحها (flatten) في خط واحد طويل وإعطاءها للنموذج.
+    </div>
+    <p>
+      أبسط طريقة لاستخراج الميزات هي أخذ قيم البيكسلات مباشرةً دون أي معالجة — تُعرف بـ <strong>Raw Pixels</strong>.
+    </p>
+  </div>
+
+  <!-- ===== الكود الأول ===== -->
+  <div class="section">
+    <h2><span class="step-num">٢</span> قراءة الصورة وفحص أبعادها</h2>
+    <pre><code><span class="keyword">import</span> cv2
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+img = cv2.<span class="func">imread</span>(<span class="string">'image.jpg'</span>, <span class="number">0</span>)
+img.shape</code></pre>
+    <div class="output-box">(400, 400)</div>
+
+    <h3>شرح السطر بسطر:</h3>
+
+    <h3>🔹 <code>import cv2</code></h3>
+    <p>
+      استيراد مكتبة <strong>OpenCV</strong> — وهي مكتبة مفتوحة المصدر متخصصة في معالجة الصورة والرؤية الحاسوبية.
+      تستخدمها الشركات الكبرى في تطبيقات مثل التعرف على الوجوه وقيادة السيارات ذاتياً.
+    </p>
+
+    <h3>🔹 <code>import numpy as np</code></h3>
+    <p>
+      استيراد مكتبة <strong>NumPy</strong> للعمل مع المصفوفات والعمليات الرياضية.
+      الصور في الكمبيوتر ما هي إلا مصفوفات أرقام، وNumPy هي الأداة الأقوى للتعامل معها.
+    </p>
+
+    <h3>🔹 <code>cv2.imread('image.jpg', 0)</code></h3>
+    <div class="info-box">
+      <strong>المعامل الأول:</strong> مسار الصورة — <code>'image.jpg'</code><br/>
+      <strong>المعامل الثاني:</strong> <code>0</code> يعني قراءة الصورة بـ <strong>تدرج الرمادي (Grayscale)</strong> أي بُعد واحد فقط.<br/>
+      لو وضعنا <code>1</code> بدلاً من <code>0</code> لقرأنا الصورة ملونة (BGR — ثلاثة أبعاد).
+    </div>
+
+    <h3>🔹 <code>img.shape</code></h3>
+    <p>
+      تعرض أبعاد المصفوفة. النتيجة <code>(400, 400)</code> تعني:
+    </p>
+    <table>
+      <tr><th>القيمة</th><th>المعنى</th></tr>
+      <tr><td>400 (الأول)</td><td>عدد الصفوف = الارتفاع بالبيكسل</td></tr>
+      <tr><td>400 (الثاني)</td><td>عدد الأعمدة = العرض بالبيكسل</td></tr>
+    </table>
+    <p>إذاً الصورة 400×400 بيكسل = <strong>160,000 بيكسل</strong> إجمالاً.</p>
+  </div>
+
+  <!-- ===== الكود الثاني ===== -->
+  <div class="section">
+    <h2><span class="step-num">٣</span> تغيير حجم الصورة (Resize)</h2>
+    <pre><code>img = cv2.<span class="func">resize</span>(img, (<span class="number">64</span>, <span class="number">64</span>))
+img.shape</code></pre>
+    <div class="output-box">(64, 64)</div>
+
+    <h3>لماذا نُصغِّر الصورة؟</h3>
+    <div class="warning-box">
+      ⚠️ الصورة الأصلية 400×400 = 160,000 بيكسل. لو استخدمناها مباشرة في نموذج تعلم الآلة:
+      <br/>— سيكون المتجه كبيراً جداً (160,000 عنصر لكل صورة)
+      <br/>— الحساب سيكون بطيئاً جداً
+      <br/>— خطر الـ Overfitting يزداد
+    </div>
+
+    <h3>🔹 <code>cv2.resize(img, (64, 64))</code></h3>
+    <div class="info-box">
+      <strong>المعامل الأول:</strong> الصورة الأصلية<br/>
+      <strong>المعامل الثاني:</strong> الحجم الجديد (عرض، ارتفاع) = (64, 64)<br/>
+      <strong>ملاحظة:</strong> في resize، الترتيب هو (عرض، ارتفاع) — عكس <code>shape</code> التي تعطي (ارتفاع، عرض)!
+    </div>
+
+    <p>الآن الصورة 64×64 = <strong>4,096 بيكسل</strong> فقط. تقليل كبير!</p>
+  </div>
+
+  <!-- ===== الكود الثالث ===== -->
+  <div class="section">
+    <h2><span class="step-num">٤</span> تسطيح الصورة (Flatten) — إنشاء متجه الميزات</h2>
+    <pre><code>features = img.<span class="func">flatten</span>()
+<span class="func">print</span>(features.shape)</code></pre>
+    <div class="output-box">(4096,)</div>
+
+    <h3>🔹 <code>img.flatten()</code></h3>
+    <p>
+      هذه العملية تحوّل الصورة من مصفوفة ثنائية الأبعاد (64 × 64) إلى مصفوفة أحادية البُعد (4096 عنصر).
+    </p>
+
+    <div class="info-box">
+      <strong>تصور بصري:</strong><br/>
+      مصفوفة 64×64:<br/>
+      <code>[[ 120, 85, 90, ... ], [ 100, 95, 88, ... ], ...]</code><br/><br/>
+      بعد flatten:<br/>
+      <code>[ 120, 85, 90, ..., 100, 95, 88, ..., ]</code><br/>
+      كل البيكسلات في صف واحد طويل (4096 رقم)
+    </div>
+
+    <h3>📐 الحساب الرياضي:</h3>
+    <p><strong>64 × 64 = 4,096</strong> — هذا هو طول متجه الميزات.</p>
+
+    <div class="success-box">
+      ✅ الآن لدينا <strong>متجه ميزات</strong> بطول 4096 يمثل الصورة كاملة.
+      يمكننا إدخاله مباشرةً في أي خوارزمية تعلم آلة مثل Logistic Regression أو SVM أو KNN.
+    </div>
+  </div>
+
+  <!-- ===== مميزات وعيوب ===== -->
+  <div class="section">
+    <h2><span class="step-num">٥</span> مميزات وعيوب طريقة البيكسلات الخام</h2>
+    <table>
+      <tr><th>الجانب</th><th>التفصيل</th></tr>
+      <tr><td>✅ بساطة</td><td>لا تحتاج إلى أي خوارزمية معقدة — مجرد flatten</td></tr>
+      <tr><td>✅ سرعة</td><td>العملية فورية ولا تستهلك وقتاً للحساب</td></tr>
+      <tr><td>❌ حساسة للإضاءة</td><td>نفس الجسم بإضاءة مختلفة يعطي بيكسلات مختلفة تماماً</td></tr>
+      <tr><td>❌ حساسة للإزاحة</td><td>الجسم في يمين الصورة أو يسارها يعطي متجهات مختلفة</td></tr>
+      <tr><td>❌ حساسة للتدوير</td><td>الجسم المدور يبدو مختلفاً تماماً رياضياً</td></tr>
+      <tr><td>❌ حجم كبير</td><td>صورة 100×100 = 10,000 ميزة — قد يكون كثيراً</td></tr>
+    </table>
+
+    <div class="warning-box">
+      ⚠️ <strong>لماذا نحتاج طرقاً أفضل؟</strong><br/>
+      البيكسلات الخام لا تفهم "المعنى" في الصورة.
+      لذلك طُوِّرت طرق مثل HOG وLBP وORB التي سنشرحها في الملفات التالية.
+    </div>
+  </div>
+
+  <!-- ===== الخلاصة ===== -->
+  <div class="section">
+    <h2><span class="step-num">٦</span> ملخص الكود كاملاً</h2>
+    <pre><code><span class="keyword">import</span> cv2
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># الخطوة 1: قراءة الصورة بالرمادي (0 = grayscale)</span>
+img = cv2.<span class="func">imread</span>(<span class="string">'image.jpg'</span>, <span class="number">0</span>)
+<span class="comment"># img.shape → (400, 400) — صورة 400×400 بيكسل</span>
+
+<span class="comment"># الخطوة 2: تصغير الصورة لتوحيد الحجم</span>
+img = cv2.<span class="func">resize</span>(img, (<span class="number">64</span>, <span class="number">64</span>))
+<span class="comment"># img.shape → (64, 64) — الآن 64×64 بيكسل</span>
+
+<span class="comment"># الخطوة 3: تسطيح الصورة إلى متجه أحادي البُعد</span>
+features = img.<span class="func">flatten</span>()
+<span class="comment"># features.shape → (4096,) — متجه ميزات جاهز للنموذج</span>
+<span class="func">print</span>(features.shape)</code></pre>
+
+    <div class="success-box">
+      🎯 <strong>الخلاصة:</strong> هذا الكود يأخذ صورة 400×400، يصغرها إلى 64×64،
+      ثم يحولها إلى متجه رقمي بطول 4096 — يمثل الصورة كميزات خام جاهزة لتعلم الآلة.
+    </div>
+  </div>
+
+  <footer>
+    <p>معالجة الصورة والرؤية الحاسوبية — الجلسة الخامسة — 2025/2026</p>
+  </footer>
+</div>
+</body>
+</html>

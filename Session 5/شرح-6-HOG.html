@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>شرح - هيستوغرام التدرجات الموجهة HOG</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.9;
+      font-size: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    header {
+      background: linear-gradient(135deg, #1a2c3a, #0c4a6e);
+      padding: 40px 32px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 1px solid #0c4a6e55;
+    }
+    header h1 { font-size: 2rem; color: #7dd3fc; margin-bottom: 10px; }
+    header p { color: #94a3b8; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      background: #0c4a6e;
+      color: #bae6fd;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      margin-top: 12px;
+    }
+    .section {
+      background: #1a1f2e;
+      border: 1px solid #2a3450;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    .section h2 {
+      font-size: 1.35rem;
+      color: #38bdf8;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #0c4a6e;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h3 { font-size: 1.1rem; color: #7dd3fc; margin: 20px 0 10px; }
+    .section p { color: #cbd5e1; margin-bottom: 12px; }
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      margin: 16px 0;
+    }
+    code { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #e6edf3; }
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .number  { color: #79c0ff; }
+    .output-box {
+      background: #161b22;
+      border-right: 4px solid #22c55e;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      direction: ltr;
+      text-align: left;
+      color: #86efac;
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+    .info-box {
+      background: #0c4a6e1a;
+      border: 1px solid #0369a1;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #7dd3fc;
+    }
+    .info-box strong { color: #38bdf8; }
+    .warning-box {
+      background: #451a0322;
+      border: 1px solid #92400e;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fcd34d;
+    }
+    .success-box {
+      background: #14532d22;
+      border: 1px solid #166534;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #86efac;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #0c4a6e;
+      color: #bae6fd;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #0c4a6e;
+      color: #7dd3fc;
+      padding: 10px 14px;
+      text-align: right;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3450;
+      color: #cbd5e1;
+    }
+    tr:hover td { background: #1e2a3a; }
+    .hog-pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .hog-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: #1e2438;
+      border-radius: 10px;
+      padding: 14px;
+      border-right: 3px solid #0369a1;
+    }
+    .hog-step-num {
+      background: #0c4a6e;
+      color: #bae6fd;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+    }
+    .hog-step-content h4 { color: #38bdf8; margin-bottom: 4px; }
+    .hog-step-content p { color: #94a3b8; font-size: 0.88rem; margin: 0; }
+    footer {
+      text-align: center;
+      color: #475569;
+      padding: 30px;
+      font-size: 0.85rem;
+      border-top: 1px solid #2a3450;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>📊 هيستوغرام التدرجات الموجهة — HOG</h1>
+    <p>الجلسة الخامسة — معالجة الصورة والرؤية الحاسوبية</p>
+    <span class="badge">6.ipynb — Histogram of Oriented Gradients</span>
+  </header>
+
+  <!-- ===== ما هو HOG ===== -->
+  <div class="section">
+    <h2><span class="step-num">١</span> ما هو HOG ولماذا هو ثوري؟</h2>
+    <p>
+      <strong>HOG = Histogram of Oriented Gradients</strong> — هيستوغرام التدرجات الموجهة.
+      طُوِّر عام 2005 من قِبَل Dalal وTriggs لكشف المشاة في الصور.
+    </p>
+    <div class="info-box">
+      <strong>الفكرة الجوهرية:</strong> بدلاً من وصف الصورة بقيم البيكسلات،
+      HOG يصفها بـ <strong>اتجاهات وشدة التغيرات (الحواف)</strong> في مناطق محلية صغيرة.
+      الشكل يتحدد باتجاهات حوافه، وليس بألوانه!
+    </div>
+    <p>
+      <strong>الإنجاز التاريخي:</strong> باستخدام HOG + SVM، حقق Dalal وTriggs دقة غير مسبوقة
+      في كشف المشاة، وأصبح هذا النهج المعيار الذهبي في مجال كشف الأجسام قبل انتشار الشبكات العصبية العميقة.
+    </p>
+  </div>
+
+  <!-- ===== كيف يعمل HOG ===== -->
+  <div class="section">
+    <h2><span class="step-num">٢</span> كيف تعمل HOG؟ — المراحل التفصيلية</h2>
+    <div class="hog-pipeline">
+      <div class="hog-step">
+        <div class="hog-step-num">1</div>
+        <div class="hog-step-content">
+          <h4>تحويل إلى رمادي وتطبيع الألوان</h4>
+          <p>تحويل الصورة الملونة إلى رمادي لتبسيط الحسابات</p>
+        </div>
+      </div>
+      <div class="hog-step">
+        <div class="hog-step-num">2</div>
+        <div class="hog-step-content">
+          <h4>حساب التدرجات Gradients</h4>
+          <p>حساب شدة واتجاه التغير لكل بيكسل باستخدام مرشحات Sobel:
+          Gx (أفقي) و Gy (رأسي) → الشدة = √(Gx²+Gy²)، الاتجاه = arctan(Gy/Gx)</p>
+        </div>
+      </div>
+      <div class="hog-step">
+        <div class="hog-step-num">3</div>
+        <div class="hog-step-content">
+          <h4>تقسيم الصورة إلى خلايا (Cells)</h4>
+          <p>تقسيم الصورة إلى مربعات صغيرة (مثل 8×8 بيكسل) — كل مربع يسمى "خلية"</p>
+        </div>
+      </div>
+      <div class="hog-step">
+        <div class="hog-step-num">4</div>
+        <div class="hog-step-content">
+          <h4>بناء هيستوغرام لكل خلية</h4>
+          <p>لكل خلية، ننشئ هيستوغرام من 9 خانات (0°-180°) — كل خانة تجمع شدة الحواف بهذا الاتجاه</p>
+        </div>
+      </div>
+      <div class="hog-step">
+        <div class="hog-step-num">5</div>
+        <div class="hog-step-content">
+          <h4>تجميع الخلايا في كتل (Blocks)</h4>
+          <p>تجميع 2×2 خلية في كتلة واحدة وتطبيع هيستوغراماتها معاً لتقليل تأثير الإضاءة</p>
+        </div>
+      </div>
+      <div class="hog-step">
+        <div class="hog-step-num">6</div>
+        <div class="hog-step-content">
+          <h4>دمج كل الهيستوغرامات في متجه واحد</h4>
+          <p>متجه HOG النهائي = تسلسل هيستوغرامات جميع الكتل — هذا هو متجه الميزات</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== شرح الكود ===== -->
+  <div class="section">
+    <h2><span class="step-num">٣</span> شرح الكود سطراً بسطر</h2>
+    <pre><code><span class="keyword">import</span> cv2
+<span class="keyword">from</span> skimage.feature <span class="keyword">import</span> hog
+<span class="keyword">from</span> matplotlib <span class="keyword">import</span> pyplot <span class="keyword">as</span> plt
+
+<span class="comment"># قراءة الصورة</span>
+img = cv2.<span class="func">imread</span>(<span class="string">'image.jpg'</span>)
+gray = cv2.<span class="func">cvtColor</span>(img, cv2.COLOR_BGR2GRAY)
+
+<span class="comment"># حساب HOG</span>
+features, hog_image = <span class="func">hog</span>(gray,
+                          orientations=<span class="number">9</span>,
+                          pixels_per_cell=(<span class="number">8</span>, <span class="number">8</span>),
+                          cells_per_block=(<span class="number">2</span>, <span class="number">2</span>),
+                          visualize=<span class="keyword">True</span>)
+
+<span class="comment"># عرض النتيجة</span>
+plt.<span class="func">subplot</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">1</span>)
+plt.<span class="func">title</span>(<span class="string">"Original"</span>)
+plt.<span class="func">imshow</span>(gray, cmap=<span class="string">'gray'</span>)
+
+plt.<span class="func">subplot</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">2</span>)
+plt.<span class="func">title</span>(<span class="string">"HOG"</span>)
+plt.<span class="func">imshow</span>(hog_image, cmap=<span class="string">'gray'</span>)
+
+plt.<span class="func">show</span>()</code></pre>
+
+    <h3>🔹 <code>from skimage.feature import hog</code></h3>
+    <p>استيراد دالة HOG من scikit-image. هذه الدالة توفر تنفيذاً محسَّناً ومرناً لـ HOG.</p>
+
+    <h3>🔹 <code>cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)</code></h3>
+    <p>
+      تحويل الصورة الملونة (BGR) إلى رمادي. HOG يعمل على صور الرمادي.
+      إذا أردنا استخدام HOG مع الألوان، نطبقه على كل قناة لون على حدة.
+    </p>
+
+    <h3>🔹 دالة <code>hog(...)</code> — المعاملات التفصيلية</h3>
+    <div class="info-box">
+      <strong>orientations=9:</strong><br/>
+      عدد خانات الهيستوغرام — الزوايا من 0° إلى 180° مقسومة على 9 خانات (كل خانة = 20°)<br/>
+      <br/>
+      <strong>pixels_per_cell=(8, 8):</strong><br/>
+      حجم الخلية — 8×8 بيكسل. خلية أصغر = تفاصيل أكثر لكن متجه أكبر<br/>
+      <br/>
+      <strong>cells_per_block=(2, 2):</strong><br/>
+      عدد الخلايا في كل كتلة — 2×2 خلية. الكتل تُستخدم للتطبيع<br/>
+      <br/>
+      <strong>visualize=True:</strong><br/>
+      إرجاع صورة HOG للعرض البصري (بدونها ترجع الدالة متجه الميزات فقط)
+    </div>
+
+    <h3>حساب حجم متجه HOG:</h3>
+    <p>لصورة 400×400 بيكسل:</p>
+    <table>
+      <tr><th>الحساب</th><th>القيمة</th></tr>
+      <tr><td>عدد الخلايا أفقياً</td><td>400 ÷ 8 = 50 خلية</td></tr>
+      <tr><td>عدد الخلايا رأسياً</td><td>400 ÷ 8 = 50 خلية</td></tr>
+      <tr><td>عدد الكتل أفقياً</td><td>(50 - 2 + 1) = 49 كتلة</td></tr>
+      <tr><td>عدد الكتل رأسياً</td><td>49 كتلة</td></tr>
+      <tr><td>هيستوغرام لكل كتلة</td><td>2×2×9 = 36 قيمة</td></tr>
+      <tr><td>طول متجه HOG الكلي</td><td>49 × 49 × 36 = <strong>86,436</strong></td></tr>
+    </table>
+
+    <h3>🔹 <code>plt.subplot(1, 2, 1)</code></h3>
+    <p>
+      إنشاء شبكة رسومات: <code>(1, 2, 1)</code> تعني:
+      صف واحد، عمودان، وهذا هو الرسم الأول.
+      يسمح بعرض صورتين جنباً إلى جنب للمقارنة.
+    </p>
+  </div>
+
+  <!-- ===== لماذا HOG قوي ===== -->
+  <div class="section">
+    <h2><span class="step-num">٤</span> لماذا HOG قوي جداً؟</h2>
+    <table>
+      <tr><th>الميزة</th><th>السبب</th></tr>
+      <tr><td>مقاوم للإضاءة</td><td>التطبيع داخل الكتل يُقلل تأثير الإضاءة الكلية</td></tr>
+      <tr><td>يصف الشكل جيداً</td><td>التدرجات تُمثل حدود الأجسام وهياكلها</td></tr>
+      <tr><td>محلي وعالمي معاً</td><td>الخلايا تصف التفاصيل المحلية والكتل تجمعها بشكل أوسع</td></tr>
+      <tr><td>متجه ذو معنى</td><td>كل قيمة في المتجه تمثل تدرجاً في اتجاه محدد بمكان محدد</td></tr>
+    </table>
+
+    <div class="success-box">
+      ✅ <strong>خلاصة:</strong> HOG هو الوصف الأقوى للشكل والبنية في الصور.
+      استُخدم في أشهر نماذج كشف الأجسام قبل عصر التعلم العميق وما زال يُستخدم إلى اليوم.
+    </div>
+  </div>
+
+  <!-- ===== الكود الكامل ===== -->
+  <div class="section">
+    <h2><span class="step-num">٥</span> الكود الكامل مع الشرح</h2>
+    <pre><code><span class="keyword">import</span> cv2
+<span class="keyword">from</span> skimage.feature <span class="keyword">import</span> hog
+<span class="keyword">from</span> matplotlib <span class="keyword">import</span> pyplot <span class="keyword">as</span> plt
+
+<span class="comment"># الخطوة 1: قراءة الصورة ملونة ثم تحويلها لرمادي</span>
+img = cv2.<span class="func">imread</span>(<span class="string">'image.jpg'</span>)
+gray = cv2.<span class="func">cvtColor</span>(img, cv2.COLOR_BGR2GRAY)
+
+<span class="comment"># الخطوة 2: حساب HOG</span>
+<span class="comment"># orientations=9: 9 اتجاهات (0°-180°)</span>
+<span class="comment"># pixels_per_cell=(8,8): خلية 8×8 بيكسل</span>
+<span class="comment"># cells_per_block=(2,2): كتلة من 2×2 خلية للتطبيع</span>
+<span class="comment"># visualize=True: إرجاع صورة HOG للعرض</span>
+features, hog_image = <span class="func">hog</span>(gray,
+                          orientations=<span class="number">9</span>,
+                          pixels_per_cell=(<span class="number">8</span>, <span class="number">8</span>),
+                          cells_per_block=(<span class="number">2</span>, <span class="number">2</span>),
+                          visualize=<span class="keyword">True</span>)
+
+<span class="comment"># الخطوة 3: عرض الصورة الأصلية وصورة HOG جنباً إلى جنب</span>
+plt.<span class="func">subplot</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">1</span>)   <span class="comment"># الصف 1، عمودان، الرسم الأول</span>
+plt.<span class="func">title</span>(<span class="string">"Original"</span>)
+plt.<span class="func">imshow</span>(gray, cmap=<span class="string">'gray'</span>)
+
+plt.<span class="func">subplot</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>)   <span class="comment"># الرسم الثاني</span>
+plt.<span class="func">title</span>(<span class="string">"HOG"</span>)
+plt.<span class="func">imshow</span>(hog_image, cmap=<span class="string">'gray'</span>)
+
+plt.<span class="func">show</span>()
+
+<span class="comment"># features.shape يعطي حجم متجه HOG</span>
+<span class="func">print</span>(features.shape)</code></pre>
+  </div>
+
+  <footer>
+    <p>معالجة الصورة والرؤية الحاسوبية — الجلسة الخامسة — 2025/2026</p>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>شرح - المثال الشامل: مقارنة طرق استخراج الميزات + SVM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.9;
+      font-size: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    header {
+      background: linear-gradient(135deg, #1a1a1a, #1f2937);
+      padding: 40px 32px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 1px solid #374151;
+    }
+    header h1 { font-size: 1.8rem; color: #f9fafb; margin-bottom: 10px; }
+    header p { color: #94a3b8; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      background: #374151;
+      color: #d1d5db;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      margin-top: 8px;
+      margin-left: 4px;
+    }
+    .section {
+      background: #1a1f2e;
+      border: 1px solid #2a3450;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    .section h2 {
+      font-size: 1.35rem;
+      color: #e5e7eb;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #374151;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h3 { font-size: 1.05rem; color: #d1d5db; margin: 20px 0 10px; }
+    .section p { color: #cbd5e1; margin-bottom: 12px; }
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      margin: 16px 0;
+    }
+    code { font-family: 'Courier New', monospace; font-size: 0.88rem; color: #e6edf3; }
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .number  { color: #79c0ff; }
+    .output-box {
+      background: #161b22;
+      border-right: 4px solid #22c55e;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      direction: ltr;
+      text-align: left;
+      color: #86efac;
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+    .info-box {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #cbd5e1;
+    }
+    .info-box strong { color: #e5e7eb; }
+    .warning-box {
+      background: #451a0322;
+      border: 1px solid #92400e;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fcd34d;
+    }
+    .success-box {
+      background: #14532d22;
+      border: 1px solid #166534;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #86efac;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #374151;
+      color: #f3f4f6;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #1f2937;
+      color: #d1d5db;
+      padding: 10px 14px;
+      text-align: right;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3450;
+      color: #cbd5e1;
+    }
+    tr:hover td { background: #1e2a3a; }
+    .method-card {
+      background: #1e2438;
+      border: 1px solid #374151;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 10px 0;
+    }
+    .method-card h4 {
+      color: #93c5fd;
+      margin-bottom: 8px;
+    }
+    .method-card p {
+      color: #94a3b8;
+      font-size: 0.88rem;
+      margin: 0;
+    }
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .comp-item {
+      background: #1e2438;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #374151;
+    }
+    .comp-item .method-name { color: #93c5fd; font-size: 0.85rem; font-weight: bold; }
+    .comp-item .accuracy { font-size: 1.3rem; font-weight: bold; color: #34d399; margin: 4px 0; }
+    .comp-item .size { color: #64748b; font-size: 0.75rem; }
+    footer {
+      text-align: center;
+      color: #475569;
+      padding: 30px;
+      font-size: 0.85rem;
+      border-top: 1px solid #2a3450;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🏆 المثال الشامل: مقارنة طرق استخراج الميزات مع SVM</h1>
+    <p>الجلسة الخامسة — معالجة الصورة والرؤية الحاسوبية</p>
+    <span class="badge">completeExamnple.ipynb</span>
+    <span class="badge">SVM + 6 Feature Methods</span>
+  </header>
+
+  <!-- ===== نظرة عامة ===== -->
+  <div class="section">
+    <h2><span class="step-num">١</span> نظرة عامة — ما الذي يفعله هذا الكود؟</h2>
+    <p>
+      هذا المثال الشامل يجمع كل ما تعلمناه ويقارن بين <strong>ست طرق مختلفة</strong>
+      لاستخراج الميزات مع نموذج <strong>SVM (آلة المتجهات الداعمة)</strong> للتصنيف على MNIST.
+    </p>
+    <p>الطرق الست:</p>
+    <div class="comparison-grid">
+      <div class="comp-item">
+        <div class="method-name">Raw Pixels</div>
+        <div class="accuracy">~89%</div>
+        <div class="size">784 ميزة</div>
+      </div>
+      <div class="comp-item">
+        <div class="method-name">Histogram</div>
+        <div class="accuracy">~40%</div>
+        <div class="size">32 ميزة</div>
+      </div>
+      <div class="comp-item">
+        <div class="method-name">Edges</div>
+        <div class="accuracy">~82%</div>
+        <div class="size">784 ميزة</div>
+      </div>
+      <div class="comp-item">
+        <div class="method-name">HOG</div>
+        <div class="accuracy">~95%</div>
+        <div class="size">متغير</div>
+      </div>
+      <div class="comp-item">
+        <div class="method-name">LBP</div>
+        <div class="accuracy">~60%</div>
+        <div class="size">10 ميزات</div>
+      </div>
+      <div class="comp-item">
+        <div class="method-name">HOG+LBP</div>
+        <div class="accuracy">~95%</div>
+        <div class="size">متغير+10</div>
+      </div>
+    </div>
+    <div class="info-box">
+      <strong>الهدف:</strong> نثبت تجريبياً أي طريقة استخراج ميزات تعطي أفضل دقة في التصنيف.
+      هذا ما يسميه العلماء "Ablation Study" — دراسة تأثير كل مكون على حدة.
+    </div>
+  </div>
+
+  <!-- ===== الاستيرادات ===== -->
+  <div class="section">
+    <h2><span class="step-num">٢</span> الاستيرادات وتحميل البيانات</h2>
+    <pre><code><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">import</span> cv2
+<span class="keyword">import</span> pandas <span class="keyword">as</span> pd
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+<span class="keyword">from</span> tensorflow.keras.datasets <span class="keyword">import</span> mnist
+<span class="keyword">from</span> skimage.feature <span class="keyword">import</span> hog, local_binary_pattern
+
+<span class="keyword">from</span> sklearn.svm <span class="keyword">import</span> SVC
+<span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> StandardScaler
+<span class="keyword">from</span> sklearn.pipeline <span class="keyword">import</span> Pipeline
+<span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> accuracy_score, classification_report, confusion_matrix</code></pre>
+
+    <table>
+      <tr><th>المكتبة</th><th>الغرض</th></tr>
+      <tr><td>numpy</td><td>العمليات الرياضية على المصفوفات</td></tr>
+      <tr><td>cv2 (OpenCV)</td><td>معالجة الصور (Canny، الهيستوغرام)</td></tr>
+      <tr><td>pandas</td><td>إنشاء جداول المقارنة وعرضها</td></tr>
+      <tr><td>matplotlib</td><td>الرسوم البيانية</td></tr>
+      <tr><td>tensorflow.keras.datasets.mnist</td><td>تحميل مجموعة MNIST</td></tr>
+      <tr><td>skimage.feature</td><td>HOG وLBP من scikit-image</td></tr>
+      <tr><td>sklearn.svm.SVC</td><td>نموذج SVM للتصنيف</td></tr>
+      <tr><td>sklearn.preprocessing.StandardScaler</td><td>تطبيع الميزات</td></tr>
+      <tr><td>sklearn.pipeline.Pipeline</td><td>دمج خطوات المعالجة والنموذج</td></tr>
+      <tr><td>sklearn.metrics</td><td>قياس الدقة وتقرير التصنيف ومصفوفة الخلط</td></tr>
+    </table>
+
+    <pre><code><span class="comment"># =====================================================</span>
+<span class="comment"># 1. Load MNIST Dataset</span>
+<span class="comment"># =====================================================</span>
+(x_train, y_train), (x_test, y_test) = mnist.<span class="func">load_data</span>()
+
+<span class="comment"># =====================================================</span>
+<span class="comment"># 2. Use small sample for faster training</span>
+<span class="comment"># =====================================================</span>
+train_size = <span class="number">8000</span>
+test_size  = <span class="number">2000</span>
+
+x_train = x_train[:train_size]
+y_train = y_train[:train_size]
+x_test  = x_test[:test_size]
+y_test  = y_test[:test_size]</code></pre>
+
+    <div class="info-box">
+      <strong>لماذا 8000 و 2000 فقط (وليس 60000 و 10000)؟</strong><br/>
+      SVM بطيء جداً على البيانات الكبيرة — وقت التدريب يزيد بمقياس O(n²) أو O(n³).
+      60,000 عينة × 6 طرق × نموذج SVM = ساعات عديدة!
+      8,000 عينة = دقائق فقط مع نتائج كافية للمقارنة.
+    </div>
+  </div>
+
+  <!-- ===== دوال الاستخراج ===== -->
+  <div class="section">
+    <h2><span class="step-num">٣</span> دوال استخراج الميزات الست</h2>
+
+    <h3>الدالة 1: البيكسلات الخام</h3>
+    <pre><code><span class="keyword">def</span> <span class="func">extract_raw_pixels</span>(images):
+    features = images.<span class="func">reshape</span>(<span class="func">len</span>(images), -<span class="number">1</span>)
+    features = features / <span class="number">255.0</span>
+    <span class="keyword">return</span> features</code></pre>
+    <div class="info-box">
+      <strong>reshape(len(images), -1):</strong> تحويل (N, 28, 28) إلى (N, 784)<br/>
+      الـ <code>-1</code> تعني "احسب الحجم تلقائياً" = 28×28 = 784<br/>
+      <strong>/ 255.0:</strong> تطبيع إلى [0, 1]
+    </div>
+
+    <h3>الدالة 2: الهيستوغرام الرمادي</h3>
+    <pre><code><span class="keyword">def</span> <span class="func">extract_histogram</span>(images, bins=<span class="number">32</span>):
+    features = []
+    <span class="keyword">for</span> img <span class="keyword">in</span> images:
+        hist = cv2.<span class="func">calcHist</span>([img.astype(np.uint8)], [<span class="number">0</span>], <span class="keyword">None</span>, [bins], [<span class="number">0</span>, <span class="number">256</span>])
+        hist = hist.<span class="func">flatten</span>()
+        hist = hist / (hist.<span class="func">sum</span>() + <span class="number">1e-7</span>)  <span class="comment"># تطبيع</span>
+        features.<span class="func">append</span>(hist)
+    <span class="keyword">return</span> np.<span class="func">array</span>(features)</code></pre>
+    <div class="info-box">
+      <strong>img.astype(np.uint8):</strong> calcHist تتطلب صور uint8، لكن MNIST تأتي كـ uint8 فعلاً<br/>
+      <strong>bins=32:</strong> 32 خانة بدلاً من 256 لتقليل حجم المتجه<br/>
+      <strong>+ 1e-7:</strong> نضيف رقماً صغيراً جداً لتجنب القسمة على صفر (Zero Division)
+    </div>
+
+    <h3>الدالة 3: حواف Canny</h3>
+    <pre><code><span class="keyword">def</span> <span class="func">extract_edges</span>(images):
+    features = []
+    <span class="keyword">for</span> img <span class="keyword">in</span> images:
+        img_uint8 = img.astype(np.uint8)
+        edges = cv2.<span class="func">Canny</span>(img_uint8, <span class="number">50</span>, <span class="number">150</span>)
+        edge_vector = edges.<span class="func">flatten</span>() / <span class="number">255.0</span>
+        features.<span class="func">append</span>(edge_vector)
+    <span class="keyword">return</span> np.<span class="func">array</span>(features)</code></pre>
+    <div class="info-box">
+      <strong>العتبتان (50, 150):</strong> مناسبتان لصور MNIST الصغيرة (28×28)<br/>
+      <strong>/ 255.0:</strong> Canny ترجع 0 أو 255، نحولها إلى 0 أو 1
+    </div>
+
+    <h3>الدالة 4: HOG</h3>
+    <pre><code><span class="keyword">def</span> <span class="func">extract_hog</span>(images):
+    features = []
+    <span class="keyword">for</span> img <span class="keyword">in</span> images:
+        img_norm = img / <span class="number">255.0</span>
+        hog_feature = <span class="func">hog</span>(img_norm,
+                         orientations=<span class="number">9</span>,
+                         pixels_per_cell=(<span class="number">7</span>, <span class="number">7</span>),
+                         cells_per_block=(<span class="number">2</span>, <span class="number">2</span>),
+                         block_norm=<span class="string">"L2-Hys"</span>)
+        features.<span class="func">append</span>(hog_feature)
+    <span class="keyword">return</span> np.<span class="func">array</span>(features)</code></pre>
+    <div class="info-box">
+      <strong>pixels_per_cell=(7, 7):</strong> خلية 7×7 لصورة 28×28 → 4×4 = 16 خلية<br/>
+      <strong>block_norm="L2-Hys":</strong> L2 normalization ثم قص القيم ثم L2 مجدداً — الأكثر استقراراً
+    </div>
+
+    <h3>الدالة 5: LBP</h3>
+    <pre><code><span class="keyword">def</span> <span class="func">extract_lbp</span>(images, radius=<span class="number">1</span>, points=<span class="number">8</span>):
+    features = []
+    <span class="keyword">for</span> img <span class="keyword">in</span> images:
+        lbp = <span class="func">local_binary_pattern</span>(img, P=points, R=radius, method=<span class="string">"uniform"</span>)
+        n_bins = points + <span class="number">2</span>
+        hist, _ = np.<span class="func">histogram</span>(lbp.ravel(), bins=n_bins, range=(<span class="number">0</span>, n_bins))
+        hist = hist.astype(<span class="string">"float"</span>)
+        hist = hist / (hist.<span class="func">sum</span>() + <span class="number">1e-7</span>)
+        features.<span class="func">append</span>(hist)
+    <span class="keyword">return</span> np.<span class="func">array</span>(features)</code></pre>
+    <div class="info-box">
+      <strong>np.histogram(lbp.ravel(), bins=n_bins):</strong><br/>
+      — <code>lbp.ravel()</code>: تسطيح مصفوفة LBP إلى صف واحد<br/>
+      — <code>bins=n_bins = P+2 = 10</code>: عدد خانات الهيستوغرام<br/>
+      — <code>range=(0, n_bins)</code>: نطاق القيم<br/>
+      — ترجع (hist, bin_edges) — نأخذ hist فقط (_  للحافات)
+    </div>
+
+    <h3>الدالة 6: HOG + LBP مدموجتان</h3>
+    <pre><code><span class="keyword">def</span> <span class="func">extract_hog_lbp</span>(images):
+    hog_features = <span class="func">extract_hog</span>(images)
+    lbp_features = <span class="func">extract_lbp</span>(images)
+    combined = np.<span class="func">hstack</span>([hog_features, lbp_features])
+    <span class="keyword">return</span> combined</code></pre>
+    <div class="info-box">
+      <strong>np.hstack:</strong> دمج أفقي — يلصق متجهات HOG وLBP جنباً إلى جنب.<br/>
+      إذا HOG = (N, 324) وLBP = (N, 10) → HOG+LBP = (N, 334)<br/>
+      <strong>الفكرة:</strong> HOG قوي في وصف الشكل، وLBP قوي في وصف النسيج — معاً يكملان بعضهما.
+    </div>
+  </div>
+
+  <!-- ===== حلقة التدريب ===== -->
+  <div class="section">
+    <h2><span class="step-num">٤</span> حلقة التدريب والتقييم</h2>
+    <pre><code>feature_methods = {
+    <span class="string">"Raw Pixels"</span>: extract_raw_pixels,
+    <span class="string">"Histogram"</span> : extract_histogram,
+    <span class="string">"Edges"</span>     : extract_edges,
+    <span class="string">"HOG"</span>       : extract_hog,
+    <span class="string">"LBP"</span>       : extract_lbp,
+    <span class="string">"HOG + LBP"</span> : extract_hog_lbp
+}
+
+results = []
+
+<span class="keyword">for</span> method_name, extractor <span class="keyword">in</span> feature_methods.items():
+
+    X_train_features = <span class="func">extractor</span>(x_train)
+    X_test_features  = <span class="func">extractor</span>(x_test)
+
+    model = <span class="func">Pipeline</span>([
+        (<span class="string">"scaler"</span>, <span class="func">StandardScaler</span>()),
+        (<span class="string">"svm"</span>   , <span class="func">SVC</span>(kernel=<span class="string">"linear"</span>))
+    ])
+
+    model.<span class="func">fit</span>(X_train_features, y_train)
+    y_pred = model.<span class="func">predict</span>(X_test_features)
+    acc = <span class="func">accuracy_score</span>(y_test, y_pred)
+
+    results.<span class="func">append</span>({
+        <span class="string">"Feature Method"</span>    : method_name,
+        <span class="string">"Feature Vector Size"</span>: X_train_features.shape[<span class="number">1</span>],
+        <span class="string">"Accuracy"</span>          : acc
+    })</code></pre>
+
+    <h3>🔹 <code>feature_methods</code> — قاموس الطرق</h3>
+    <p>
+      قاموس Python (Dictionary) حيث المفتاح هو اسم الطريقة والقيمة هي الدالة نفسها.
+      هذا يسمح بتكرار نفس الكود لكل الطرق بشكل نظيف.
+    </p>
+
+    <h3>🔹 <code>Pipeline([("scaler", ...), ("svm", ...)])</code></h3>
+    <div class="info-box">
+      <strong>Pipeline</strong> يُسلسل خطوات المعالجة والنموذج:<br/>
+      <br/>
+      <strong>الخطوة 1 — StandardScaler:</strong><br/>
+      يطبّع الميزات بحيث متوسطها = 0 وانحرافها المعياري = 1.<br/>
+      المعادلة: x' = (x - μ) / σ<br/>
+      SVM حساس جداً لنطاق القيم — بدون تطبيع قد تسود ميزات بقيم كبيرة.<br/>
+      <br/>
+      <strong>الخطوة 2 — SVC(kernel="linear"):</strong><br/>
+      Support Vector Classifier بنواة خطية.<br/>
+      يجد الحد الفاصل الأمثل بين الفئات بأكبر هامش ممكن.
+    </div>
+
+    <h3>🔹 <code>feature_methods.items()</code></h3>
+    <p>
+      تُرجع أزواجاً من (المفتاح، القيمة) — هنا (اسم الطريقة، الدالة).
+      في كل تكرار نستخرج الميزات بالدالة الحالية ونُدرّب SVM عليها.
+    </p>
+
+    <h3>🔹 <code>X_train_features.shape[1]</code></h3>
+    <p>
+      حجم متجه الميزات — العدد 1 يعني البُعد الثاني (الأعمدة = عدد الميزات).
+      البُعد الأول (shape[0]) هو عدد العينات.
+    </p>
+  </div>
+
+  <!-- ===== النتائج ===== -->
+  <div class="section">
+    <h2><span class="step-num">٥</span> عرض وتحليل النتائج</h2>
+    <pre><code><span class="comment"># جدول المقارنة</span>
+results_df = pd.<span class="func">DataFrame</span>(results)
+results_df = results_df.<span class="func">sort_values</span>(by=<span class="string">"Accuracy"</span>, ascending=<span class="keyword">False</span>)
+<span class="func">print</span>(results_df)
+
+<span class="comment"># رسم بياني</span>
+plt.<span class="func">figure</span>(figsize=(<span class="number">10</span>, <span class="number">5</span>))
+plt.<span class="func">bar</span>(results_df[<span class="string">"Feature Method"</span>], results_df[<span class="string">"Accuracy"</span>])
+plt.<span class="func">title</span>(<span class="string">"Feature Extraction Methods Comparison on MNIST"</span>)
+plt.<span class="func">xlabel</span>(<span class="string">"Feature Extraction Method"</span>)
+plt.<span class="func">ylabel</span>(<span class="string">"Accuracy"</span>)
+plt.<span class="func">ylim</span>(<span class="number">0</span>, <span class="number">1</span>)
+plt.<span class="func">xticks</span>(rotation=<span class="number">30</span>)
+plt.<span class="func">grid</span>(axis=<span class="string">"y"</span>, alpha=<span class="number">0.3</span>)
+plt.<span class="func">tight_layout</span>()
+plt.<span class="func">show</span>()</code></pre>
+
+    <h3>🔹 <code>pd.DataFrame(results)</code></h3>
+    <p>
+      تحويل قائمة القواميس إلى جدول Pandas — كل قاموس يصبح سطراً والمفاتيح تصبح أعمدة.
+    </p>
+
+    <h3>🔹 <code>sort_values(by="Accuracy", ascending=False)</code></h3>
+    <p>ترتيب الجدول تنازلياً حسب الدقة — الطريقة الأفضل تظهر أولاً.</p>
+
+    <h3>🔹 <code>plt.ylim(0, 1)</code></h3>
+    <p>تحديد نطاق المحور الرأسي من 0 إلى 1 لعرض الدقة كنسبة مئوية.</p>
+
+    <pre><code><span class="comment"># تقرير مفصل للطريقة الأفضل</span>
+<span class="func">print</span>(<span class="string">"\nClassification Report:"</span>)
+<span class="func">print</span>(<span class="func">classification_report</span>(y_test, best_y_pred))
+
+<span class="func">print</span>(<span class="string">"\nConfusion Matrix:"</span>)
+<span class="func">print</span>(<span class="func">confusion_matrix</span>(y_test, best_y_pred))</code></pre>
+
+    <h3>🔹 <code>classification_report</code></h3>
+    <div class="info-box">
+      يعرض لكل فئة (0-9):<br/>
+      — <strong>Precision:</strong> من بين كل ما نبأنا به كفئة X، كم كان صحيحاً؟<br/>
+      — <strong>Recall:</strong> من بين كل العينات الحقيقية لفئة X، كم اكتشفنا؟<br/>
+      — <strong>F1-score:</strong> متوسط توافقي بين Precision وRecall<br/>
+      — <strong>Support:</strong> عدد العينات الفعلية لكل فئة في بيانات الاختبار
+    </div>
+
+    <h3>🔹 <code>confusion_matrix</code></h3>
+    <div class="info-box">
+      مصفوفة 10×10 حيث:<br/>
+      — الصفوف = الفئات الحقيقية<br/>
+      — الأعمدة = الفئات المتنبأ بها<br/>
+      — القطر الرئيسي = التنبؤات الصحيحة (نريدها كبيرة)<br/>
+      — الخانات الأخرى = الأخطاء (نريدها صفراً)
+    </div>
+  </div>
+
+  <!-- ===== ما هو SVM ===== -->
+  <div class="section">
+    <h2><span class="step-num">٦</span> ما هو SVM؟ — الشرح المعمق</h2>
+    <p>
+      <strong>SVM = Support Vector Machine (آلة المتجهات الداعمة)</strong>
+    </p>
+    <p>
+      الفكرة: إيجاد حد فاصل (Hyperplane) يفصل بين الفئات بأكبر هامش ممكن.
+    </p>
+    <table>
+      <tr><th>المصطلح</th><th>الشرح</th></tr>
+      <tr><td>Hyperplane</td><td>خط في 2D، مستوى في 3D، فضاء فائق في الأبعاد العليا</td></tr>
+      <tr><td>Support Vectors</td><td>أقرب النقاط لحد الفصل — هي فقط التي تُحدد الحد الفاصل</td></tr>
+      <tr><td>Margin</td><td>المسافة بين الحد الفاصل وأقرب نقاط الفئتين — نريد تعظيمه</td></tr>
+      <tr><td>kernel="linear"</td><td>حد فاصل خطي — مناسب عندما الميزات كثيرة والبيانات خطياً قابلة للفصل</td></tr>
+      <tr><td>kernel="rbf"</td><td>نواة Radial Basis — تُضاف أبعاداً جديدة لتمكين الفصل غير الخطي</td></tr>
+    </table>
+    <div class="success-box">
+      ✅ <strong>لماذا SVM مناسب مع ميزات HOG؟</strong><br/>
+      HOG تُنتج متجهات عالية الأبعاد (مئات إلى آلاف الميزات). SVM يتفوق في الفضاءات عالية الأبعاد
+      لأنه يعتمد على Support Vectors فقط وليس على كل البيانات.
+    </div>
+  </div>
+
+  <!-- ===== النتائج المتوقعة ===== -->
+  <div class="section">
+    <h2><span class="step-num">٧</span> تفسير النتائج والدروس المستفادة</h2>
+    <table>
+      <tr><th>الطريقة</th><th>الدقة المتوقعة</th><th>لماذا؟</th></tr>
+      <tr><td>HOG + LBP</td><td>~95%</td><td>تجمع وصف الشكل والنسيج — أقوى ميزات</td></tr>
+      <tr><td>HOG</td><td>~95%</td><td>وصف قوي للشكل والبنية</td></tr>
+      <tr><td>Raw Pixels</td><td>~89%</td><td>بسيط لكن يحمل معلومات كاملة</td></tr>
+      <tr><td>Edges (Canny)</td><td>~82%</td><td>حواف مفيدة لكن تفقد بعض المعلومات</td></tr>
+      <tr><td>LBP</td><td>~60%</td><td>النسيج وحده غير كافٍ للأرقام</td></tr>
+      <tr><td>Histogram</td><td>~40%</td><td>الهيستوغرام الرمادي لا يميز الأرقام جيداً</td></tr>
+    </table>
+
+    <div class="info-box">
+      <strong>الدروس المستفادة:</strong><br/>
+      1. اختيار الميزات المناسبة أهم من اختيار النموذج<br/>
+      2. الميزات الهندسية (HOG) أفضل من البيكسلات الخام للأشكال<br/>
+      3. دمج الميزات (HOG+LBP) غالباً يُحسّن الأداء<br/>
+      4. الميزات يجب أن تتناسب مع طبيعة المشكلة
+    </div>
+
+    <div class="success-box">
+      🎯 <strong>الخلاصة النهائية:</strong> هذا الكود يُقدم مقارنة علمية كاملة بين 6 طرق لاستخراج الميزات.
+      يُثبت تجريبياً أن HOG هي الأفضل للأرقام المكتوبة بخط اليد، ويعرض نتائجها بشكل بصري واضح.
+    </div>
+  </div>
+
+  <footer>
+    <p>معالجة الصورة والرؤية الحاسوبية — الجلسة الخامسة — 2025/2026</p>
+  </footer>
+</div>
+</body>
+</html>
