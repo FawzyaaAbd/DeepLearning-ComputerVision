@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>شرح - كشف الحواف بخوارزمية Canny</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.9;
+      font-size: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    header {
+      background: linear-gradient(135deg, #1a3a2e, #1f6b4a);
+      padding: 40px 32px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 1px solid #1f6b4a55;
+    }
+    header h1 { font-size: 2rem; color: #6ee7b7; margin-bottom: 10px; }
+    header p { color: #94a3b8; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      background: #065f46;
+      color: #a7f3d0;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      margin-top: 12px;
+    }
+    .section {
+      background: #1a1f2e;
+      border: 1px solid #2a3450;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    .section h2 {
+      font-size: 1.35rem;
+      color: #34d399;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #065f46;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h3 { font-size: 1.1rem; color: #6ee7b7; margin: 20px 0 10px; }
+    .section p { color: #cbd5e1; margin-bottom: 12px; }
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      margin: 16px 0;
+    }
+    code { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #e6edf3; }
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .number  { color: #79c0ff; }
+    .output-box {
+      background: #161b22;
+      border-right: 4px solid #22c55e;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      direction: ltr;
+      text-align: left;
+      color: #86efac;
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+    .info-box {
+      background: #0641391a;
+      border: 1px solid #1f6b4a;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #6ee7b7;
+    }
+    .info-box strong { color: #34d399; }
+    .warning-box {
+      background: #451a0322;
+      border: 1px solid #92400e;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fcd34d;
+    }
+    .success-box {
+      background: #14532d22;
+      border: 1px solid #166534;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #86efac;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #065f46;
+      color: #a7f3d0;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #064e3b;
+      color: #6ee7b7;
+      padding: 10px 14px;
+      text-align: right;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3450;
+      color: #cbd5e1;
+    }
+    tr:hover td { background: #1e2a3a; }
+    .pipeline {
+      display: flex;
+      flex-direction: row-reverse;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 16px 0;
+      align-items: center;
+    }
+    .pipe-step {
+      background: #064e3b;
+      border: 1px solid #1f6b4a;
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: #a7f3d0;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+    .pipe-arrow { color: #34d399; font-size: 1.2rem; }
+    footer {
+      text-align: center;
+      color: #475569;
+      padding: 30px;
+      font-size: 0.85rem;
+      border-top: 1px solid #2a3450;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🔍 كشف الحواف — خوارزمية Canny</h1>
+    <p>الجلسة الخامسة — معالجة الصورة والرؤية الحاسوبية</p>
+    <span class="badge">2.ipynb — Canny Edge Detection</span>
+  </header>
+
+  <!-- ===== ما هو كشف الحواف ===== -->
+  <div class="section">
+    <h2><span class="step-num">١</span> ما هو كشف الحواف؟ ولماذا نحتاجه؟</h2>
+    <p>
+      الحواف (Edges) في الصورة هي المناطق التي يتغير فيها تدرج الإضاءة (intensity) بشكل مفاجئ.
+      تُمثل الحواف حدود الأجسام والأشكال في الصورة.
+    </p>
+    <div class="info-box">
+      <strong>مثال:</strong> عند التقاط صورة لكرة على خلفية بيضاء، ستكون بيكسلات الكرة داكنة والخلفية فاتحة.
+      الحافة هي الخط الفاصل بينهما حيث يتغير اللون فجأة.
+    </div>
+    <p>
+      الحواف مفيدة جداً كميزات لأنها:
+    </p>
+    <ul style="color:#cbd5e1; padding-right:20px; margin-bottom:12px;">
+      <li>تُمثل شكل الجسم وحدوده</li>
+      <li>أقل حساسية للإضاءة مقارنة بالبيكسلات الخام</li>
+      <li>تُركز على المعلومات الهيكلية المهمة</li>
+    </ul>
+  </div>
+
+  <!-- ===== خطوات خوارزمية Canny ===== -->
+  <div class="section">
+    <h2><span class="step-num">٢</span> مراحل خوارزمية Canny الخمس</h2>
+    <p>طوّر John Canny هذه الخوارزمية عام 1986، وهي تعمل عبر خمس مراحل متتالية:</p>
+
+    <div class="pipeline">
+      <div class="pipe-step">1️⃣ تنعيم الصورة<br/>(Gaussian Blur)</div>
+      <div class="pipe-arrow">←</div>
+      <div class="pipe-step">2️⃣ حساب التدرج<br/>(Gradient)</div>
+      <div class="pipe-arrow">←</div>
+      <div class="pipe-step">3️⃣ قمع غير القمم<br/>(Non-Max Suppression)</div>
+      <div class="pipe-arrow">←</div>
+      <div class="pipe-step">4️⃣ العتبة المزدوجة<br/>(Double Threshold)</div>
+      <div class="pipe-arrow">←</div>
+      <div class="pipe-step">5️⃣ تتبع الحواف<br/>(Hysteresis)</div>
+    </div>
+
+    <table>
+      <tr><th>المرحلة</th><th>الهدف</th><th>التفصيل</th></tr>
+      <tr>
+        <td>١. Gaussian Blur</td>
+        <td>إزالة الضوضاء</td>
+        <td>تطبيق فلتر تنعيم لإزالة التفاصيل الصغيرة والضوضاء التي قد تُسبب حواف وهمية</td>
+      </tr>
+      <tr>
+        <td>٢. Gradient Calculation</td>
+        <td>تحديد التغيرات</td>
+        <td>حساب شدة واتجاه التغير في الإضاءة باستخدام مشتقات Sobel</td>
+      </tr>
+      <tr>
+        <td>٣. Non-Max Suppression</td>
+        <td>ترقيق الحواف</td>
+        <td>الإبقاء فقط على أعلى نقطة في كل حافة للحصول على حواف بسُمك بيكسل واحد</td>
+      </tr>
+      <tr>
+        <td>٤. Double Threshold</td>
+        <td>تصنيف الحواف</td>
+        <td>عتبة عليا (قوية) وعتبة دنيا (ضعيفة) لتصنيف الحواف</td>
+      </tr>
+      <tr>
+        <td>٥. Hysteresis Tracking</td>
+        <td>ربط الحواف</td>
+        <td>الحواف الضعيفة المتصلة بحواف قوية تُحفظ، وغيرها تُحذف</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- ===== شرح الكود ===== -->
+  <div class="section">
+    <h2><span class="step-num">٣</span> شرح الكود سطراً بسطر</h2>
+    <pre><code><span class="keyword">import</span> cv2
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+img = cv2.<span class="func">imread</span>(<span class="string">'image.jpg'</span>, <span class="number">0</span>)
+
+edges = cv2.<span class="func">Canny</span>(img, <span class="number">100</span>, <span class="number">200</span>)
+
+plt.<span class="func">imshow</span>(edges, cmap=<span class="string">'gray'</span>)
+plt.<span class="func">title</span>(<span class="string">"Edges"</span>)
+plt.<span class="func">axis</span>(<span class="string">'off'</span>)
+plt.<span class="func">show</span>()</code></pre>
+
+    <h3>🔹 <code>import matplotlib.pyplot as plt</code></h3>
+    <p>
+      استيراد مكتبة <strong>Matplotlib</strong> لرسم وعرض الصور والرسوم البيانية.
+      نستخدمها هنا بدلاً من <code>cv2.imshow</code> لأنها تعمل بشكل أفضل داخل Jupyter Notebook.
+    </p>
+
+    <h3>🔹 <code>cv2.imread('image.jpg', 0)</code></h3>
+    <p>قراءة الصورة بتدرج الرمادي (Grayscale). خوارزمية Canny تعمل على صور الرمادي فقط.</p>
+
+    <h3>🔹 <code>cv2.Canny(img, 100, 200)</code></h3>
+    <div class="info-box">
+      <strong>المعامل الأول:</strong> الصورة المدخلة (يجب أن تكون Grayscale)<br/>
+      <strong>المعامل الثاني — threshold1:</strong> <code>100</code> — العتبة الدنيا<br/>
+      <strong>المعامل الثالث — threshold2:</strong> <code>200</code> — العتبة العليا<br/><br/>
+      <strong>كيف تعمل العتبتان؟</strong><br/>
+      — أي حافة بتدرج أعلى من 200 → تُعتبر حافة <strong>قوية</strong> وتُحفظ دائماً<br/>
+      — أي حافة بتدرج أقل من 100 → <strong>تُحذف</strong> دائماً<br/>
+      — أي حافة بتدرج بين 100 و 200 → <strong>ضعيفة</strong>، تُحفظ فقط إذا كانت متصلة بحافة قوية
+    </div>
+
+    <h3>كيف تختار قيم العتبة؟</h3>
+    <table>
+      <tr><th>الحالة</th><th>التوصية</th><th>النتيجة</th></tr>
+      <tr><td>عتبة منخفضة (مثل 50, 100)</td><td>صورة بها تفاصيل كثيرة</td><td>حواف أكثر وأدق</td></tr>
+      <tr><td>عتبة مرتفعة (مثل 150, 300)</td><td>صورة بسيطة أو مشوشة</td><td>حواف أقل وأوضح</td></tr>
+      <tr><td>نسبة 1:2 أو 1:3</td><td>القاعدة العامة</td><td>100:200 أو 50:150</td></tr>
+    </table>
+
+    <h3>🔹 <code>plt.imshow(edges, cmap='gray')</code></h3>
+    <p>
+      عرض صورة الحواف بتدرج الرمادي. <code>cmap='gray'</code> يخبر Matplotlib أن تعرض الصورة
+      بالأبيض والأسود (الحواف بيضاء على خلفية سوداء).
+    </p>
+
+    <h3>🔹 <code>plt.axis('off')</code></h3>
+    <p>إخفاء محاور الرسم (الأرقام والخطوط) لعرض الصورة بشكل نظيف.</p>
+  </div>
+
+  <!-- ===== النتيجة ===== -->
+  <div class="section">
+    <h2><span class="step-num">٤</span> فحص أبعاد الناتج</h2>
+    <pre><code>edges.shape</code></pre>
+    <div class="output-box">(400, 400)</div>
+
+    <div class="info-box">
+      <strong>ملاحظة مهمة:</strong> حجم صورة الحواف <strong>مطابق</strong> لحجم الصورة الأصلية (400×400).
+      الفرق هو في القيم:
+      <br/>— <strong>255</strong> (أبيض) = يوجد حافة في هذا البيكسل
+      <br/>— <strong>0</strong> (أسود) = لا توجد حافة
+    </div>
+
+    <p>
+      يمكننا بعد ذلك استخدام <code>edges.flatten()</code> للحصول على متجه ميزات
+      بطول 400×400 = 160,000 عنصر يمثل مواقع الحواف في الصورة.
+    </p>
+  </div>
+
+  <!-- ===== مقارنة ===== -->
+  <div class="section">
+    <h2><span class="step-num">٥</span> لماذا الحواف أفضل من البيكسلات الخام؟</h2>
+    <table>
+      <tr><th>المعيار</th><th>بيكسلات خام</th><th>حواف Canny</th></tr>
+      <tr><td>تأثير الإضاءة</td><td>كبير جداً</td><td>أقل بكثير</td></tr>
+      <tr><td>المعلومات المفيدة</td><td>كل البيكسلات بما فيها الخلفية</td><td>حدود الأجسام فقط</td></tr>
+      <tr><td>وصف الشكل</td><td>ضعيف</td><td>ممتاز</td></tr>
+      <tr><td>حجم البيانات</td><td>كبير (كل البيكسلات لها قيم)</td><td>أصغر (معظم البيكسلات = 0)</td></tr>
+    </table>
+
+    <div class="success-box">
+      ✅ <strong>خلاصة:</strong> Canny تستخرج الهيكل البنيوي للأجسام وتُهمل الخلفية والتفاصيل غير الضرورية،
+      مما يجعلها ميزات أكثر قدرة على التعميم في نماذج تعلم الآلة.
+    </div>
+  </div>
+
+  <!-- ===== الكود كاملاً ===== -->
+  <div class="section">
+    <h2><span class="step-num">٦</span> الكود الكامل مع الشرح</h2>
+    <pre><code><span class="keyword">import</span> cv2
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+<span class="comment"># الخطوة 1: قراءة الصورة بالرمادي — Canny يحتاج Grayscale</span>
+img = cv2.<span class="func">imread</span>(<span class="string">'image.jpg'</span>, <span class="number">0</span>)
+
+<span class="comment"># الخطوة 2: تطبيق خوارزمية Canny</span>
+<span class="comment"># 100 = العتبة الدنيا (Low Threshold)</span>
+<span class="comment"># 200 = العتبة العليا (High Threshold)</span>
+edges = cv2.<span class="func">Canny</span>(img, <span class="number">100</span>, <span class="number">200</span>)
+
+<span class="comment"># الخطوة 3: عرض النتيجة</span>
+plt.<span class="func">imshow</span>(edges, cmap=<span class="string">'gray'</span>)  <span class="comment"># الحواف بيضاء والخلفية سوداء</span>
+plt.<span class="func">title</span>(<span class="string">"Edges"</span>)
+plt.<span class="func">axis</span>(<span class="string">'off'</span>)               <span class="comment"># إخفاء المحاور</span>
+plt.<span class="func">show</span>()
+
+<span class="comment"># فحص الأبعاد — نفس الصورة الأصلية</span>
+<span class="func">print</span>(edges.shape)  <span class="comment"># (400, 400)</span></code></pre>
+  </div>
+
+  <footer>
+    <p>معالجة الصورة والرؤية الحاسوبية — الجلسة الخامسة — 2025/2026</p>
+  </footer>
+</div>
+</body>
+</html>

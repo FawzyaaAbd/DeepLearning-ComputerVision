@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>شرح - كاشف ORB للنقاط المميزة</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.9;
+      font-size: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    header {
+      background: linear-gradient(135deg, #1c2f1a, #365314);
+      padding: 40px 32px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 1px solid #36531455;
+    }
+    header h1 { font-size: 2rem; color: #bef264; margin-bottom: 10px; }
+    header p { color: #94a3b8; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      background: #365314;
+      color: #d9f99d;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      margin-top: 12px;
+    }
+    .section {
+      background: #1a1f2e;
+      border: 1px solid #2a3450;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    .section h2 {
+      font-size: 1.35rem;
+      color: #84cc16;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #365314;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h3 { font-size: 1.1rem; color: #bef264; margin: 20px 0 10px; }
+    .section p { color: #cbd5e1; margin-bottom: 12px; }
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      margin: 16px 0;
+    }
+    code { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #e6edf3; }
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .number  { color: #79c0ff; }
+    .output-box {
+      background: #161b22;
+      border-right: 4px solid #22c55e;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      direction: ltr;
+      text-align: left;
+      color: #86efac;
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+    .info-box {
+      background: #3653141a;
+      border: 1px solid #4d7c0f;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #bef264;
+    }
+    .info-box strong { color: #84cc16; }
+    .warning-box {
+      background: #451a0322;
+      border: 1px solid #92400e;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fcd34d;
+    }
+    .success-box {
+      background: #14532d22;
+      border: 1px solid #166534;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #86efac;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #365314;
+      color: #d9f99d;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #365314;
+      color: #bef264;
+      padding: 10px 14px;
+      text-align: right;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3450;
+      color: #cbd5e1;
+    }
+    tr:hover td { background: #1e2a3a; }
+    .acronym-box {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 16px 0;
+    }
+    .acronym-part {
+      flex: 1;
+      min-width: 160px;
+      background: #1e2438;
+      border: 1px solid #365314;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+    .acronym-letter { font-size: 2rem; font-weight: bold; color: #84cc16; }
+    .acronym-word { color: #bef264; font-size: 0.9rem; font-weight: bold; margin: 4px 0; }
+    .acronym-desc { color: #94a3b8; font-size: 0.8rem; }
+    footer {
+      text-align: center;
+      color: #475569;
+      padding: 30px;
+      font-size: 0.85rem;
+      border-top: 1px solid #2a3450;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🎯 كاشف النقاط المميزة — ORB</h1>
+    <p>الجلسة الخامسة — معالجة الصورة والرؤية الحاسوبية</p>
+    <span class="badge">5.ipynb — ORB Feature Detection</span>
+  </header>
+
+  <!-- ===== ما هو ORB ===== -->
+  <div class="section">
+    <h2><span class="step-num">١</span> ما هو ORB؟ وما معنى الاختصار؟</h2>
+    <p>
+      <strong>ORB = Oriented FAST and Rotated BRIEF</strong>
+    </p>
+    <div class="acronym-box">
+      <div class="acronym-part">
+        <div class="acronym-letter">O</div>
+        <div class="acronym-word">Oriented</div>
+        <div class="acronym-desc">موجَّه — مقاوم للدوران</div>
+      </div>
+      <div class="acronym-part">
+        <div class="acronym-letter">FAST</div>
+        <div class="acronym-word">Features from Accelerated Segment Test</div>
+        <div class="acronym-desc">خوارزمية سريعة لإيجاد النقاط المميزة</div>
+      </div>
+      <div class="acronym-part">
+        <div class="acronym-letter">R</div>
+        <div class="acronym-word">Rotated</div>
+        <div class="acronym-desc">مُدوَّر — لمقاومة الدوران</div>
+      </div>
+      <div class="acronym-part">
+        <div class="acronym-letter">BRIEF</div>
+        <div class="acronym-word">Binary Robust Independent Elementary Features</div>
+        <div class="acronym-desc">واصف ثنائي خفيف وسريع</div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <strong>قصة ORB:</strong> طُوِّر في OpenCV Labs عام 2011 كبديل مجاني وسريع لخوارزميتَي
+      SIFT وSURF اللتين كانتا محميتَين ببراءات اختراع (مدفوعتَين).
+      ORB مجانية الاستخدام وأسرع بكثير مع نتائج قريبة.
+    </div>
+  </div>
+
+  <!-- ===== كيف يعمل ORB ===== -->
+  <div class="section">
+    <h2><span class="step-num">٢</span> كيف يعمل ORB؟ — مرحلتان</h2>
+
+    <h3>المرحلة الأولى: إيجاد النقاط المميزة (Keypoints) — باستخدام FAST</h3>
+    <p>
+      خوارزمية FAST تبحث عن نقاط مميزة بطريقة ذكية:
+      تأخذ دائرة من 16 بيكسلاً حول نقطة مركزية، وتتحقق إذا كان:
+    </p>
+    <ul style="color:#cbd5e1; padding-right:20px; margin-bottom:12px;">
+      <li>N متواليات (عادةً 9) من الـ 16 بيكسل أفتح أو أغمق من المركز بمقدار معين</li>
+      <li>إذا نعم → هذه نقطة مميزة (Keypoint)</li>
+    </ul>
+    <p>
+      ORB يُضيف لـ FAST حساب <strong>الاتجاه (Orientation)</strong> لكل نقطة
+      باستخدام العزم الشعاعي (Intensity Centroid)، مما يجعله مقاوماً للدوران.
+    </p>
+
+    <h3>المرحلة الثانية: وصف النقاط (Descriptors) — باستخدام BRIEF</h3>
+    <p>
+      بعد إيجاد النقاط المميزة، نحتاج "بصمة" لكل نقطة ليمكن مطابقتها في صور أخرى.
+      BRIEF يعمل كالتالي:
+    </p>
+    <ul style="color:#cbd5e1; padding-right:20px; margin-bottom:12px;">
+      <li>يأخذ أزواجاً عشوائية من البيكسلات حول النقطة المميزة</li>
+      <li>يقارن كل زوج: إذا البيكسل الأول أكبر → 1، وإلا → 0</li>
+      <li>ينتج متجهاً ثنائياً بطول 256 بت</li>
+    </ul>
+    <div class="info-box">
+      <strong>لماذا ثنائي (Binary)؟</strong><br/>
+      المقارنة بين وصفَين ثنائيَّين تستخدم <strong>مسافة Hamming</strong> (عدد البتات المختلفة)
+      وهي أسرع بكثير من المسافة الإقليدية المستخدمة مع SIFT.
+    </div>
+  </div>
+
+  <!-- ===== شرح الكود ===== -->
+  <div class="section">
+    <h2><span class="step-num">٣</span> شرح الكود سطراً بسطر</h2>
+    <pre><code><span class="keyword">import</span> cv2
+
+img = cv2.<span class="func">imread</span>(<span class="string">'person.jpg'</span>, <span class="number">0</span>)
+
+orb = cv2.<span class="func">ORB_create</span>()
+
+<span class="comment"># استخراج النقاط</span>
+keypoints, descriptors = orb.<span class="func">detectAndCompute</span>(img, <span class="keyword">None</span>)
+
+<span class="comment"># رسم النقاط</span>
+img2 = cv2.<span class="func">drawKeypoints</span>(img, keypoints, <span class="keyword">None</span>)
+
+cv2.<span class="func">imshow</span>(<span class="string">'ORB Features'</span>, img2)
+cv2.<span class="func">waitKey</span>(<span class="number">0</span>)
+cv2.<span class="func">destroyAllWindows</span>()</code></pre>
+
+    <h3>🔹 <code>cv2.imread('person.jpg', 0)</code></h3>
+    <p>
+      قراءة صورة شخص بالرمادي. نستخدم <code>person.jpg</code> هنا (بدلاً من <code>image.jpg</code>)
+      لأن ORB مناسب للكائنات الحقيقية ذات التفاصيل الكثيرة.
+    </p>
+
+    <h3>🔹 <code>cv2.ORB_create()</code></h3>
+    <div class="info-box">
+      إنشاء كائن ORB بالإعدادات الافتراضية. يمكن تخصيصه:<br/>
+      <code>cv2.ORB_create(nfeatures=500)</code> — أقصى عدد نقاط مميزة (افتراضي: 500)<br/>
+      <code>cv2.ORB_create(scaleFactor=1.2)</code> — عامل تحجيم الهرم<br/>
+      <code>cv2.ORB_create(nlevels=8)</code> — عدد مستويات الهرم<br/>
+      <code>cv2.ORB_create(edgeThreshold=31)</code> — حجم الحافة المُهمَلة
+    </div>
+
+    <h3>🔹 <code>orb.detectAndCompute(img, None)</code></h3>
+    <p>
+      هذه الدالة تؤدي مرحلتَين دفعةً واحدة:
+    </p>
+    <table>
+      <tr><th>المرحلة</th><th>المخرج</th><th>الوصف</th></tr>
+      <tr><td>detect</td><td>keypoints</td><td>قائمة من كائنات KeyPoint — كل واحد يحمل: الموقع (x,y)، الحجم، الزاوية، القوة</td></tr>
+      <tr><td>compute</td><td>descriptors</td><td>مصفوفة NumPy شكلها (N, 32) — N = عدد النقاط، 32 بايت = 256 بت لكل نقطة</td></tr>
+    </table>
+    <p>المعامل الثاني <code>None</code> يعني: لا توجد قناع — ابحث في الصورة كاملة.</p>
+
+    <h3>🔹 <code>cv2.drawKeypoints(img, keypoints, None)</code></h3>
+    <p>
+      رسم النقاط المميزة على الصورة. <code>None</code> في المعامل الثالث تعني: أعطنا صورة جديدة
+      (لا تعدّل على الأصلية). يمكن إضافة علامات أكبر:
+    </p>
+    <pre><code>img2 = cv2.<span class="func">drawKeypoints</span>(img, keypoints, <span class="keyword">None</span>,
+                           flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+<span class="comment"># سيرسم دوائر بحجم كل نقطة واتجاهها</span></code></pre>
+  </div>
+
+  <!-- ===== ما هي النقطة المميزة ===== -->
+  <div class="section">
+    <h2><span class="step-num">٤</span> تفصيل كائن KeyPoint</h2>
+    <pre><code><span class="comment"># مثال على طباعة تفاصيل أول نقطة</span>
+kp = keypoints[<span class="number">0</span>]
+<span class="func">print</span>(<span class="string">"الموقع:"</span>, kp.pt)        <span class="comment"># (x, y) بالبيكسل</span>
+<span class="func">print</span>(<span class="string">"الحجم:"</span>, kp.size)      <span class="comment"># قطر المنطقة ذات الصلة</span>
+<span class="func">print</span>(<span class="string">"الزاوية:"</span>, kp.angle)   <span class="comment"># اتجاه النقطة بالدرجات</span>
+<span class="func">print</span>(<span class="string">"القوة:"</span>, kp.response)  <span class="comment"># قوة النقطة (كلما كبرت كلما كانت أوضح)</span></code></pre>
+
+    <table>
+      <tr><th>الخاصية</th><th>الوصف</th></tr>
+      <tr><td><code>pt</code></td><td>إحداثيات النقطة (x, y)</td></tr>
+      <tr><td><code>size</code></td><td>حجم النقطة — قطر المنطقة المؤثرة</td></tr>
+      <tr><td><code>angle</code></td><td>اتجاه النقطة بالدرجات (0-360) — لمقاومة الدوران</td></tr>
+      <tr><td><code>response</code></td><td>قوة النقطة — الأقوى تُختار عند تقليل عدد النقاط</td></tr>
+      <tr><td><code>octave</code></td><td>مستوى الهرم الذي وُجدت فيه — لمقاومة التحجيم</td></tr>
+    </table>
+  </div>
+
+  <!-- ===== مقارنة ===== -->
+  <div class="section">
+    <h2><span class="step-num">٥</span> مقارنة ORB مع الخوارزميات الأخرى</h2>
+    <table>
+      <tr><th>الخاصية</th><th>ORB</th><th>SIFT</th><th>SURF</th></tr>
+      <tr><td>الترخيص</td><td>✅ مجاني</td><td>❌ براءة اختراع (حتى 2020)</td><td>❌ براءة اختراع</td></tr>
+      <tr><td>السرعة</td><td>⚡ سريع جداً</td><td>بطيء</td><td>متوسط</td></tr>
+      <tr><td>الدقة</td><td>جيدة</td><td>ممتازة</td><td>ممتازة</td></tr>
+      <tr><td>نوع الواصف</td><td>ثنائي (BRIEF)</td><td>عشري (128 float)</td><td>عشري (64 float)</td></tr>
+      <tr><td>مقاومة الدوران</td><td>✅ نعم</td><td>✅ نعم</td><td>✅ نعم</td></tr>
+      <tr><td>مقاومة التحجيم</td><td>✅ نعم</td><td>✅ نعم</td><td>✅ نعم</td></tr>
+    </table>
+
+    <div class="success-box">
+      ✅ <strong>خلاصة:</strong> ORB هو الخيار الأمثل للتطبيقات الحقيقية التي تحتاج سرعة وكفاءة
+      مع مقاومة جيدة للدوران والتحجيم — مثال: تطبيقات الهاتف المحمول والروبوتيكس.
+    </div>
+  </div>
+
+  <!-- ===== الكود الكامل ===== -->
+  <div class="section">
+    <h2><span class="step-num">٦</span> الكود الكامل مع الشرح</h2>
+    <pre><code><span class="keyword">import</span> cv2
+
+<span class="comment"># الخطوة 1: قراءة الصورة بالرمادي</span>
+img = cv2.<span class="func">imread</span>(<span class="string">'person.jpg'</span>, <span class="number">0</span>)
+
+<span class="comment"># الخطوة 2: إنشاء كاشف ORB</span>
+orb = cv2.<span class="func">ORB_create</span>()
+
+<span class="comment"># الخطوة 3: اكتشاف النقاط المميزة وحساب واصفاتها</span>
+<span class="comment"># keypoints: قائمة نقاط (موقع، حجم، زاوية)</span>
+<span class="comment"># descriptors: مصفوفة (N, 32) — 32 بايت = 256 بت لكل نقطة</span>
+keypoints, descriptors = orb.<span class="func">detectAndCompute</span>(img, <span class="keyword">None</span>)
+
+<span class="comment"># الخطوة 4: رسم النقاط على الصورة</span>
+img2 = cv2.<span class="func">drawKeypoints</span>(img, keypoints, <span class="keyword">None</span>)
+
+<span class="comment"># الخطوة 5: عرض النتيجة</span>
+cv2.<span class="func">imshow</span>(<span class="string">'ORB Features'</span>, img2)
+cv2.<span class="func">waitKey</span>(<span class="number">0</span>)
+cv2.<span class="func">destroyAllWindows</span>()</code></pre>
+  </div>
+
+  <footer>
+    <p>معالجة الصورة والرؤية الحاسوبية — الجلسة الخامسة — 2025/2026</p>
+  </footer>
+</div>
+</body>
+</html>

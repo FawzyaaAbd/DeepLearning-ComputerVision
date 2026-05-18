@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>شرح - هيستوغرام الألوان</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.9;
+      font-size: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    header {
+      background: linear-gradient(135deg, #2a1a0e, #7c3500);
+      padding: 40px 32px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 1px solid #7c350055;
+    }
+    header h1 { font-size: 2rem; color: #fdba74; margin-bottom: 10px; }
+    header p { color: #94a3b8; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      background: #7c2d12;
+      color: #fed7aa;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      margin-top: 12px;
+    }
+    .section {
+      background: #1a1f2e;
+      border: 1px solid #2a3450;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    .section h2 {
+      font-size: 1.35rem;
+      color: #fb923c;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #7c2d12;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h3 { font-size: 1.1rem; color: #fdba74; margin: 20px 0 10px; }
+    .section p { color: #cbd5e1; margin-bottom: 12px; }
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      margin: 16px 0;
+    }
+    code { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #e6edf3; }
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .number  { color: #79c0ff; }
+    .output-box {
+      background: #161b22;
+      border-right: 4px solid #22c55e;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      direction: ltr;
+      text-align: left;
+      color: #86efac;
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+    .info-box {
+      background: #7c2d121a;
+      border: 1px solid #9a3412;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fdba74;
+    }
+    .info-box strong { color: #fb923c; }
+    .warning-box {
+      background: #451a0322;
+      border: 1px solid #92400e;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fcd34d;
+    }
+    .success-box {
+      background: #14532d22;
+      border: 1px solid #166534;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #86efac;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #7c2d12;
+      color: #fed7aa;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #7c2d12;
+      color: #fdba74;
+      padding: 10px 14px;
+      text-align: right;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3450;
+      color: #cbd5e1;
+    }
+    tr:hover td { background: #1e2a3a; }
+    .channels-box {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 16px 0;
+    }
+    .channel {
+      flex: 1;
+      min-width: 140px;
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .channel-b { background: #1e3a5f; border: 2px solid #3b82f6; }
+    .channel-g { background: #14532d; border: 2px solid #22c55e; }
+    .channel-r { background: #7f1d1d; border: 2px solid #ef4444; }
+    .channel .icon { font-size: 1.8rem; margin-bottom: 8px; }
+    .channel .name { font-weight: bold; font-size: 1rem; }
+    .channel .desc { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; }
+    .channel-b .name { color: #93c5fd; }
+    .channel-g .name { color: #86efac; }
+    .channel-r .name { color: #fca5a5; }
+    footer {
+      text-align: center;
+      color: #475569;
+      padding: 30px;
+      font-size: 0.85rem;
+      border-top: 1px solid #2a3450;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🌈 هيستوغرام الألوان — Color Histogram</h1>
+    <p>الجلسة الخامسة — معالجة الصورة والرؤية الحاسوبية</p>
+    <span class="badge">7.ipynb — Color Histogram Features</span>
+  </header>
+
+  <!-- ===== ما هو الهيستوغرام ===== -->
+  <div class="section">
+    <h2><span class="step-num">١</span> ما هو هيستوغرام الصورة؟</h2>
+    <p>
+      الهيستوغرام (Histogram) هو رسم بياني يُظهر <strong>توزيع قيم البيكسلات</strong> في الصورة.
+      يُجيب على سؤال: "كم عدد البيكسلات التي قيمتها بين X وY؟"
+    </p>
+    <div class="info-box">
+      <strong>مثال:</strong> صورة ليلية ستكون هيستوغرامها مُتمركزاً في اليسار (قيم داكنة قريبة من 0)،
+      بينما صورة في ضوء الشمس ستكون هيستوغرامها موزعاً وممتداً نحو اليمين (قيم فاتحة قريبة من 255).
+    </div>
+    <p>
+      عندما نحسب الهيستوغرام لكل <strong>قناة لون</strong> على حدة (أحمر، أخضر، أزرق)،
+      نحصل على وصف غني للتوزيع اللوني في الصورة — وهذا هو <strong>هيستوغرام الألوان</strong>.
+    </p>
+  </div>
+
+  <!-- ===== BGR في OpenCV ===== -->
+  <div class="section">
+    <h2><span class="step-num">٢</span> نظام الألوان BGR في OpenCV</h2>
+    <div class="channels-box">
+      <div class="channel channel-b">
+        <div class="icon">🔵</div>
+        <div class="name">Blue (B)</div>
+        <div class="desc">القناة الزرقاء — الفهرس 0</div>
+      </div>
+      <div class="channel channel-g">
+        <div class="icon">🟢</div>
+        <div class="name">Green (G)</div>
+        <div class="desc">القناة الخضراء — الفهرس 1</div>
+      </div>
+      <div class="channel channel-r">
+        <div class="icon">🔴</div>
+        <div class="name">Red (R)</div>
+        <div class="desc">القناة الحمراء — الفهرس 2</div>
+      </div>
+    </div>
+    <div class="warning-box">
+      ⚠️ <strong>تنبيه مهم:</strong> OpenCV يقرأ الصور بترتيب <strong>BGR</strong> وليس RGB!
+      الصور الملونة في NumPy لها أبعاد (H, W, 3) حيث:
+      <br/>— الفهرس 0 = الأزرق
+      <br/>— الفهرس 1 = الأخضر
+      <br/>— الفهرس 2 = الأحمر
+      <br/>لو استخدمنا <code>plt.imshow</code> مباشرةً على صورة OpenCV ستظهر الألوان خاطئة (أحمر وأزرق معكوسان).
+    </div>
+  </div>
+
+  <!-- ===== شرح الكود الأول ===== -->
+  <div class="section">
+    <h2><span class="step-num">٣</span> شرح الكود الأول — رسم الهيستوغرام</h2>
+    <pre><code><span class="keyword">import</span> cv2
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+<span class="comment"># قراءة الصورة</span>
+img = cv2.<span class="func">imread</span>(<span class="string">'person.jpg'</span>)
+
+<span class="comment"># فصل القنوات</span>
+colors = (<span class="string">'b'</span>, <span class="string">'g'</span>, <span class="string">'r'</span>)
+
+plt.<span class="func">figure</span>()
+plt.<span class="func">title</span>(<span class="string">"Color Histogram"</span>)
+plt.<span class="func">xlabel</span>(<span class="string">"Pixel Intensity"</span>)
+plt.<span class="func">ylabel</span>(<span class="string">"Count"</span>)
+
+<span class="comment"># حساب الهيستوغرام لكل قناة</span>
+<span class="keyword">for</span> i, color <span class="keyword">in</span> <span class="func">enumerate</span>(colors):
+    hist = cv2.<span class="func">calcHist</span>([img], [i], <span class="keyword">None</span>, [<span class="number">256</span>], [<span class="number">0</span>, <span class="number">256</span>])
+    plt.<span class="func">plot</span>(hist, color=color)
+
+plt.<span class="func">show</span>()</code></pre>
+
+    <h3>🔹 <code>colors = ('b', 'g', 'r')</code></h3>
+    <p>
+      قائمة ألوان للرسم. الترتيب يطابق ترتيب BGR في OpenCV:
+      <code>'b'</code> للأزرق (الفهرس 0)، <code>'g'</code> للأخضر (1)، <code>'r'</code> للأحمر (2).
+    </p>
+
+    <h3>🔹 <code>enumerate(colors)</code></h3>
+    <p>
+      تُرجع كلاً من الفهرس والقيمة معاً في كل تكرار:
+      <code>i=0, color='b'</code> ثم <code>i=1, color='g'</code> ثم <code>i=2, color='r'</code>
+    </p>
+
+    <h3>🔹 <code>cv2.calcHist([img], [i], None, [256], [0, 256])</code></h3>
+    <div class="info-box">
+      <strong>المعامل الأول <code>[img]</code>:</strong> الصور — قائمة (حتى لو صورة واحدة)<br/>
+      <strong>المعامل الثاني <code>[i]</code>:</strong> فهرس القناة — [0] للأزرق، [1] للأخضر، [2] للأحمر<br/>
+      <strong>المعامل الثالث <code>None</code>:</strong> القناع — None يعني حساب الهيستوغرام على الصورة كاملة<br/>
+      <strong>المعامل الرابع <code>[256]</code>:</strong> عدد الخانات — 256 خانة (قيمة لكل بيكسل ممكنة)<br/>
+      <strong>المعامل الخامس <code>[0, 256]</code>:</strong> نطاق القيم — من 0 إلى 255
+    </div>
+
+    <h3>ناتج calcHist:</h3>
+    <p>مصفوفة شكلها <code>(256, 1)</code> — كل عنصر هو عدد البيكسلات بهذه القيمة في هذه القناة.</p>
+  </div>
+
+  <!-- ===== شرح الكود الثاني ===== -->
+  <div class="section">
+    <h2><span class="step-num">٤</span> شرح الكود الثاني — إنشاء متجه الميزات</h2>
+    <pre><code><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># دمج القنوات الثلاث</span>
+hist_b = cv2.<span class="func">calcHist</span>([img], [<span class="number">0</span>], <span class="keyword">None</span>, [<span class="number">256</span>], [<span class="number">0</span>,<span class="number">256</span>])
+hist_g = cv2.<span class="func">calcHist</span>([img], [<span class="number">1</span>], <span class="keyword">None</span>, [<span class="number">256</span>], [<span class="number">0</span>,<span class="number">256</span>])
+hist_r = cv2.<span class="func">calcHist</span>([img], [<span class="number">2</span>], <span class="keyword">None</span>, [<span class="number">256</span>], [<span class="number">0</span>,<span class="number">256</span>])
+
+<span class="comment"># دمجهم في متجه واحد</span>
+feature_vector = np.<span class="func">concatenate</span>([hist_b, hist_g, hist_r])
+
+<span class="func">print</span>(feature_vector.shape)  <span class="comment"># (768, 1)</span></code></pre>
+    <div class="output-box">(768, 1)</div>
+
+    <h3>🔹 حساب الهيستوغرام لكل قناة على حدة</h3>
+    <p>
+      نحسب هيستوغراماً منفصلاً لكل قناة:
+    </p>
+    <table>
+      <tr><th>المتغير</th><th>القناة</th><th>الفهرس</th><th>الحجم</th></tr>
+      <tr><td><code>hist_b</code></td><td>أزرق (Blue)</td><td>[0]</td><td>(256, 1)</td></tr>
+      <tr><td><code>hist_g</code></td><td>أخضر (Green)</td><td>[1]</td><td>(256, 1)</td></tr>
+      <tr><td><code>hist_r</code></td><td>أحمر (Red)</td><td>[2]</td><td>(256, 1)</td></tr>
+    </table>
+
+    <h3>🔹 <code>np.concatenate([hist_b, hist_g, hist_r])</code></h3>
+    <p>
+      دمج الثلاثة هيستوغرامات في متجه واحد طويل:
+      256 + 256 + 256 = <strong>768</strong> قيمة.
+    </p>
+    <div class="success-box">
+      ✅ متجه الميزات النهائي بطول <strong>768</strong> يصف التوزيع اللوني الكامل للصورة.
+      يمكن إدخاله مباشرةً في أي نموذج تعلم آلة.
+    </div>
+  </div>
+
+  <!-- ===== مميزات ===== -->
+  <div class="section">
+    <h2><span class="step-num">٥</span> تحسينات عملية مهمة</h2>
+    <h3>أ. تقليل عدد الخانات (bins)</h3>
+    <pre><code><span class="comment"># بدلاً من 256 خانة، نستخدم 32 خانة</span>
+hist = cv2.<span class="func">calcHist</span>([img], [<span class="number">0</span>], <span class="keyword">None</span>, [<span class="number">32</span>], [<span class="number">0</span>, <span class="number">256</span>])
+<span class="comment"># 32 خانة بدلاً من 256 → أصغر وأسرع</span>
+<span class="comment"># 3 قنوات × 32 = 96 ميزة فقط (بدلاً من 768)</span></code></pre>
+
+    <h3>ب. تطبيع الهيستوغرام</h3>
+    <pre><code><span class="comment"># تطبيع ليصبح احتمالاً (مجموعه = 1)</span>
+hist = hist / hist.<span class="func">sum</span>()
+<span class="comment"># هذا يجعله مقاوماً لحجم الصورة</span>
+<span class="comment"># صورة كبيرة وصورة صغيرة من نفس المشهد ستعطيان نفس الهيستوغرام</span></code></pre>
+
+    <h3>ج. استخدام فضاء لون HSV</h3>
+    <pre><code><span class="comment"># فضاء HSV أفضل للهيستوغرام</span>
+img_hsv = cv2.<span class="func">cvtColor</span>(img, cv2.COLOR_BGR2HSV)
+<span class="comment"># H = Hue (التدرج اللوني) — القناة الأهم</span>
+<span class="comment"># S = Saturation (التشبع)</span>
+<span class="comment"># V = Value (الإضاءة) — أقل أهمية للتعرف</span>
+hist_h = cv2.<span class="func">calcHist</span>([img_hsv], [<span class="number">0</span>], <span class="keyword">None</span>, [<span class="number">180</span>], [<span class="number">0</span>, <span class="number">180</span>])</code></pre>
+
+    <table>
+      <tr><th>الميزة</th><th>مميزات هيستوغرام الألوان</th><th>عيوب</th></tr>
+      <tr><td>البساطة</td><td>✅ سهل الحساب وسريع</td><td></td></tr>
+      <tr><td>الإضاءة</td><td></td><td>❌ حساس لتغيرات الإضاءة</td></tr>
+      <tr><td>الموقع</td><td></td><td>❌ لا يأخذ موقع الألوان في الاعتبار</td></tr>
+      <tr><td>التعرف</td><td>✅ جيد للتعرف على الأجسام الملونة</td><td></td></tr>
+      <tr><td>الحجم</td><td>✅ متجه صغير نسبياً (768 أو أقل)</td><td></td></tr>
+    </table>
+  </div>
+
+  <!-- ===== الكود الكامل ===== -->
+  <div class="section">
+    <h2><span class="step-num">٦</span> الكود الكامل مع الشرح</h2>
+    <pre><code><span class="keyword">import</span> cv2
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+<span class="comment"># الخطوة 1: قراءة الصورة الملونة</span>
+img = cv2.<span class="func">imread</span>(<span class="string">'person.jpg'</span>)
+
+<span class="comment"># الخطوة 2: رسم هيستوغرام القنوات الثلاث</span>
+colors = (<span class="string">'b'</span>, <span class="string">'g'</span>, <span class="string">'r'</span>)  <span class="comment"># ألوان الرسم = ترتيب BGR</span>
+
+plt.<span class="func">figure</span>()
+plt.<span class="func">title</span>(<span class="string">"Color Histogram"</span>)
+plt.<span class="func">xlabel</span>(<span class="string">"Pixel Intensity"</span>)  <span class="comment"># المحور الأفقي: قيمة البيكسل (0-255)</span>
+plt.<span class="func">ylabel</span>(<span class="string">"Count"</span>)           <span class="comment"># المحور الرأسي: عدد البيكسلات</span>
+
+<span class="keyword">for</span> i, color <span class="keyword">in</span> <span class="func">enumerate</span>(colors):
+    hist = cv2.<span class="func">calcHist</span>([img], [i], <span class="keyword">None</span>, [<span class="number">256</span>], [<span class="number">0</span>, <span class="number">256</span>])
+    plt.<span class="func">plot</span>(hist, color=color)
+
+plt.<span class="func">show</span>()
+
+<span class="comment"># الخطوة 3: بناء متجه الميزات</span>
+hist_b = cv2.<span class="func">calcHist</span>([img], [<span class="number">0</span>], <span class="keyword">None</span>, [<span class="number">256</span>], [<span class="number">0</span>, <span class="number">256</span>])
+hist_g = cv2.<span class="func">calcHist</span>([img], [<span class="number">1</span>], <span class="keyword">None</span>, [<span class="number">256</span>], [<span class="number">0</span>, <span class="number">256</span>])
+hist_r = cv2.<span class="func">calcHist</span>([img], [<span class="number">2</span>], <span class="keyword">None</span>, [<span class="number">256</span>], [<span class="number">0</span>, <span class="number">256</span>])
+
+feature_vector = np.<span class="func">concatenate</span>([hist_b, hist_g, hist_r])
+<span class="func">print</span>(feature_vector.shape)  <span class="comment"># (768, 1)</span></code></pre>
+  </div>
+
+  <footer>
+    <p>معالجة الصورة والرؤية الحاسوبية — الجلسة الخامسة — 2025/2026</p>
+  </footer>
+</div>
+</body>
+</html>

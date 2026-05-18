@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>شرح - الأنماط الثنائية المحلية LBP</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      line-height: 1.9;
+      font-size: 16px;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+    header {
+      background: linear-gradient(135deg, #2d1f5e, #5b21b6);
+      padding: 40px 32px;
+      border-radius: 16px;
+      margin-bottom: 40px;
+      text-align: center;
+      border: 1px solid #5b21b655;
+    }
+    header h1 { font-size: 2rem; color: #c4b5fd; margin-bottom: 10px; }
+    header p { color: #94a3b8; font-size: 1rem; }
+    .badge {
+      display: inline-block;
+      background: #4c1d95;
+      color: #ddd6fe;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      margin-top: 12px;
+    }
+    .section {
+      background: #1a1f2e;
+      border: 1px solid #2a3450;
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
+    }
+    .section h2 {
+      font-size: 1.35rem;
+      color: #a78bfa;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #4c1d95;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section h3 { font-size: 1.1rem; color: #c4b5fd; margin: 20px 0 10px; }
+    .section p { color: #cbd5e1; margin-bottom: 12px; }
+    pre {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      direction: ltr;
+      text-align: left;
+      margin: 16px 0;
+    }
+    code { font-family: 'Courier New', monospace; font-size: 0.9rem; color: #e6edf3; }
+    .keyword { color: #ff7b72; }
+    .string  { color: #a5d6ff; }
+    .comment { color: #8b949e; font-style: italic; }
+    .func    { color: #d2a8ff; }
+    .number  { color: #79c0ff; }
+    .output-box {
+      background: #161b22;
+      border-right: 4px solid #22c55e;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 12px 0;
+      direction: ltr;
+      text-align: left;
+      color: #86efac;
+      font-family: monospace;
+      font-size: 0.88rem;
+    }
+    .info-box {
+      background: #4c1d951a;
+      border: 1px solid #5b21b6;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #c4b5fd;
+    }
+    .info-box strong { color: #a78bfa; }
+    .warning-box {
+      background: #451a0322;
+      border: 1px solid #92400e;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #fcd34d;
+    }
+    .success-box {
+      background: #14532d22;
+      border: 1px solid #166534;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 14px 0;
+      color: #86efac;
+    }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #4c1d95;
+      color: #ddd6fe;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: #4c1d95;
+      color: #c4b5fd;
+      padding: 10px 14px;
+      text-align: right;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #2a3450;
+      color: #cbd5e1;
+    }
+    tr:hover td { background: #1e2a3a; }
+    .lbp-grid {
+      display: inline-grid;
+      grid-template-columns: repeat(3, 60px);
+      gap: 4px;
+      margin: 16px auto;
+      direction: ltr;
+    }
+    .lbp-cell {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+    .center-cell { background: #5b21b6; color: #fff; }
+    .neighbor-0 { background: #1e293b; color: #94a3b8; }
+    .neighbor-1 { background: #1e3a5f; color: #93c5fd; }
+    .grid-wrapper { text-align: center; }
+    footer {
+      text-align: center;
+      color: #475569;
+      padding: 30px;
+      font-size: 0.85rem;
+      border-top: 1px solid #2a3450;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🧩 الأنماط الثنائية المحلية — LBP</h1>
+    <p>الجلسة الخامسة — معالجة الصورة والرؤية الحاسوبية</p>
+    <span class="badge">4.ipynb — Local Binary Patterns</span>
+  </header>
+
+  <!-- ===== ما هو LBP ===== -->
+  <div class="section">
+    <h2><span class="step-num">١</span> ما هو LBP ولماذا يُستخدم؟</h2>
+    <p>
+      <strong>LBP (Local Binary Pattern)</strong> — الأنماط الثنائية المحلية — هي تقنية لوصف
+      <strong>نسيج (Texture)</strong> الصورة. طُوِّرت في جامعة أولو الفنلندية عام 1994.
+    </p>
+    <div class="info-box">
+      <strong>ما هو "نسيج الصورة"؟</strong><br/>
+      النسيج هو النمط المتكرر المحلي في الصورة — مثل: خشونة الحجر، نعومة الجلد، تموجات القماش، حبوب الرمل.
+      LBP تُشفّر هذا النسيج رقمياً.
+    </div>
+    <p>
+      <strong>أهم ميزة في LBP:</strong> إنها <strong>مقاومة للإضاءة (Illumination Invariant)</strong>.
+      إذا أضأنا الصورة أو أظلمناها، النمط الناتج يبقى نفسه تقريباً — لأن LBP تقارن البيكسلات
+      ببعضها وليس قيمها المطلقة.
+    </p>
+  </div>
+
+  <!-- ===== كيف تعمل LBP ===== -->
+  <div class="section">
+    <h2><span class="step-num">٢</span> كيف تعمل خوارزمية LBP خطوة بخطوة</h2>
+    <p>لكل بيكسل في الصورة نطبق الخطوات التالية:</p>
+
+    <h3>الخطوة أ: اختيار البيكسل المركزي وجيرانه</h3>
+    <p>لنفترض البيكسل المركزي قيمته <strong>50</strong>، وله 8 جيران:</p>
+
+    <div class="grid-wrapper">
+      <div class="lbp-grid">
+        <div class="lbp-cell neighbor-1">64</div>
+        <div class="lbp-cell neighbor-0">22</div>
+        <div class="lbp-cell neighbor-1">80</div>
+        <div class="lbp-cell neighbor-0">45</div>
+        <div class="lbp-cell center-cell">50<br/><small style="font-size:0.65rem">مركز</small></div>
+        <div class="lbp-cell neighbor-1">75</div>
+        <div class="lbp-cell neighbor-0">30</div>
+        <div class="lbp-cell neighbor-1">90</div>
+        <div class="lbp-cell neighbor-0">10</div>
+      </div>
+    </div>
+
+    <h3>الخطوة ب: المقارنة وإنشاء النمط الثنائي</h3>
+    <p>نقارن كل جار بالمركز (50):</p>
+    <table>
+      <tr><th>الجار</th><th>القيمة</th><th>≥ 50؟</th><th>البت</th></tr>
+      <tr><td>الجار 1 (أعلى يمين)</td><td>64</td><td>نعم</td><td>1</td></tr>
+      <tr><td>الجار 2 (أعلى)</td><td>22</td><td>لا</td><td>0</td></tr>
+      <tr><td>الجار 3 (أعلى يسار)</td><td>80</td><td>نعم</td><td>1</td></tr>
+      <tr><td>الجار 4 (يسار)</td><td>45</td><td>لا</td><td>0</td></tr>
+      <tr><td>الجار 5 (أسفل يسار)</td><td>75</td><td>نعم</td><td>1</td></tr>
+      <tr><td>الجار 6 (أسفل)</td><td>30</td><td>لا</td><td>0</td></tr>
+      <tr><td>الجار 7 (أسفل يمين)</td><td>90</td><td>نعم</td><td>1</td></tr>
+      <tr><td>الجار 8 (يمين)</td><td>10</td><td>لا</td><td>0</td></tr>
+    </table>
+
+    <h3>الخطوة ج: تحويل النمط الثنائي إلى رقم عشري</h3>
+    <p>النمط الثنائي = <code>10101010</code> → تحويله إلى عشري = <strong>170</strong></p>
+    <p>هذا الرقم (170) هو قيمة LBP لهذا البيكسل.</p>
+
+    <div class="success-box">
+      ✅ نطبق هذه العملية على <strong>كل بيكسل</strong> في الصورة. الناتج هو صورة LBP بنفس الحجم
+      لكن كل بيكسل يحمل الآن رقماً يصف نسيج المنطقة المحيطة به.
+    </div>
+  </div>
+
+  <!-- ===== شرح الكود ===== -->
+  <div class="section">
+    <h2><span class="step-num">٣</span> شرح الكود سطراً بسطر</h2>
+    <pre><code><span class="keyword">from</span> skimage.feature <span class="keyword">import</span> local_binary_pattern
+<span class="keyword">import</span> cv2
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+img = cv2.<span class="func">imread</span>(<span class="string">'image.jpg'</span>, <span class="number">0</span>)
+
+<span class="comment"># تطبيق LBP</span>
+lbp = <span class="func">local_binary_pattern</span>(img, <span class="number">8</span>, <span class="number">1</span>, method=<span class="string">'uniform'</span>)
+
+plt.<span class="func">imshow</span>(lbp, cmap=<span class="string">'gray'</span>)
+plt.<span class="func">title</span>(<span class="string">"LBP"</span>)
+plt.<span class="func">axis</span>(<span class="string">'off'</span>)
+plt.<span class="func">show</span>()</code></pre>
+
+    <h3>🔹 <code>from skimage.feature import local_binary_pattern</code></h3>
+    <p>
+      استيراد دالة LBP من مكتبة <strong>scikit-image</strong>، وهي مكتبة Python متخصصة
+      في معالجة الصور ومليئة بخوارزميات مُحسَّنة.
+    </p>
+
+    <h3>🔹 <code>local_binary_pattern(img, 8, 1, method='uniform')</code></h3>
+    <div class="info-box">
+      <strong>المعامل الأول (img):</strong> الصورة بالرمادي<br/>
+      <strong>المعامل الثاني (P = 8):</strong> عدد نقاط العينة في الجوار — 8 نقاط تعني دائرة بـ 8 جيران<br/>
+      <strong>المعامل الثالث (R = 1):</strong> نصف قطر دائرة الجيران بالبيكسل — <code>1</code> تعني الجيران المباشرين<br/>
+      <strong>method='uniform':</strong> نوع حساب LBP (شرح تفصيلي أدناه)
+    </div>
+
+    <h3>ما معنى <code>method='uniform'</code>؟</h3>
+    <table>
+      <tr><th>الطريقة</th><th>الوصف</th><th>حجم الهيستوغرام</th></tr>
+      <tr><td><code>'default'</code></td><td>LBP الأصلية — 256 نمطاً مختلفاً</td><td>256</td></tr>
+      <tr><td><code>'uniform'</code></td><td>الأنماط المنتظمة فقط (لها انتقال واحد أو اثنان) — أقل ضوضاءً وأكثر وصفية</td><td>P+2 = 10</td></tr>
+      <tr><td><code>'ror'</code></td><td>مقاومة للدوران (Rotation Invariant)</td><td>أقل من 256</td></tr>
+      <tr><td><code>'nri_uniform'</code></td><td>منتظمة وغير ثابتة للدوران</td><td>P+2</td></tr>
+    </table>
+
+    <div class="info-box">
+      <strong>لماذا <code>uniform</code> هي الأشهر؟</strong><br/>
+      النمط "المنتظم" هو نمط لا يتغير أكثر من مرتين من 0 إلى 1 أو العكس عند المرور دائرياً على الجيران.
+      هذه الأنماط تمثل <strong>90%</strong> من الأنماط الطبيعية وأقل عرضة للضوضاء.
+    </div>
+  </div>
+
+  <!-- ===== النتيجة ===== -->
+  <div class="section">
+    <h2><span class="step-num">٤</span> فحص الناتج</h2>
+    <pre><code>lbp</code></pre>
+    <div class="output-box">array([[3., 5., 5., ..., 5., 5., 3.],
+       [5., 8., 8., ..., 8., 8., 5.],
+       [5., 8., 8., ..., 8., 8., 5.],
+       ...,
+       [3., 5., 5., ..., 5., 5., 3.]])</div>
+
+    <pre><code>lbp.shape</code></pre>
+    <div class="output-box">(400, 400)</div>
+
+    <p>
+      لاحظ أن القيم في مصفوفة LBP ليست من 0 إلى 255 مثل الصورة الأصلية، بل هي أرقام
+      LBP لكل بيكسل. مع <code>P=8</code> و <code>method='uniform'</code>، القيم من 0 إلى 10.
+    </p>
+
+    <div class="info-box">
+      <strong>القيم الحدية (3. و 5.):</strong> ظهرت في حواف الصورة لأن بعض الجيران خارج حدود الصورة.
+      scikit-image تتعامل مع هذا تلقائياً.
+    </div>
+  </div>
+
+  <!-- ===== استخدام LBP كميزة ===== -->
+  <div class="section">
+    <h2><span class="step-num">٥</span> كيف نستخدم LBP كمتجه ميزات؟</h2>
+    <p>
+      صورة LBP نفسها كبيرة. في الممارسة العملية، نحوّلها إلى <strong>هيستوغرام</strong>
+      يحسب تكرار كل نمط — هذا يعطينا متجهاً صغيراً يصف نسيج الصورة كاملاً:
+    </p>
+    <pre><code><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+<span class="comment"># مع P=8 وuniform: هناك P+2 = 10 نمطاً مختلفاً</span>
+n_bins = <span class="number">8</span> + <span class="number">2</span>  <span class="comment"># = 10</span>
+
+hist, _ = np.<span class="func">histogram</span>(lbp.ravel(), bins=n_bins, range=(<span class="number">0</span>, n_bins))
+
+<span class="comment"># تطبيع الهيستوغرام ليصبح احتمالاً</span>
+hist = hist.astype(<span class="string">"float"</span>)
+hist = hist / (hist.<span class="func">sum</span>() + <span class="number">1e-7</span>)
+
+<span class="func">print</span>(hist.shape)   <span class="comment"># (10,) — متجه ميزات بطول 10 فقط!</span></code></pre>
+
+    <div class="success-box">
+      ✅ بدلاً من 160,000 قيمة (400×400)، LBP يعطينا <strong>10 قيم فقط</strong> تصف نسيج الصورة!
+      هذا مثال رائع على قوة الميزات المُصمَّمة يدوياً.
+    </div>
+
+    <h3>تطبيقات LBP:</h3>
+    <table>
+      <tr><th>التطبيق</th><th>السبب</th></tr>
+      <tr><td>التعرف على الوجوه</td><td>نسيج الجلد والتجاعيد مميز لكل شخص</td></tr>
+      <tr><td>تمييز المواد</td><td>نسيج الخشب، المعدن، القماش، إلخ.</td></tr>
+      <tr><td>كشف العيوب الصناعية</td><td>الشقوق والخدوش تُغيّر النسيج المحلي</td></tr>
+      <tr><td>تحليل نسيج الأرض</td><td>صور الأقمار الصناعية</td></tr>
+    </table>
+  </div>
+
+  <!-- ===== الكود الكامل ===== -->
+  <div class="section">
+    <h2><span class="step-num">٦</span> الكود الكامل مع الشرح</h2>
+    <pre><code><span class="keyword">from</span> skimage.feature <span class="keyword">import</span> local_binary_pattern
+<span class="keyword">import</span> cv2
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+<span class="comment"># الخطوة 1: قراءة الصورة بالرمادي</span>
+img = cv2.<span class="func">imread</span>(<span class="string">'image.jpg'</span>, <span class="number">0</span>)
+
+<span class="comment"># الخطوة 2: حساب LBP</span>
+<span class="comment"># P=8: ثمانية جيران، R=1: مسافة 1 بيكسل، uniform: الأنماط المنتظمة</span>
+lbp = <span class="func">local_binary_pattern</span>(img, <span class="number">8</span>, <span class="number">1</span>, method=<span class="string">'uniform'</span>)
+
+<span class="comment"># الخطوة 3: عرض صورة LBP</span>
+plt.<span class="func">imshow</span>(lbp, cmap=<span class="string">'gray'</span>)
+plt.<span class="func">title</span>(<span class="string">"LBP"</span>)
+plt.<span class="func">axis</span>(<span class="string">'off'</span>)
+plt.<span class="func">show</span>()
+
+<span class="comment"># فحص القيم والأبعاد</span>
+<span class="func">print</span>(lbp)         <span class="comment"># مصفوفة قيم LBP</span>
+<span class="func">print</span>(lbp.shape)  <span class="comment"># (400, 400)</span></code></pre>
+  </div>
+
+  <footer>
+    <p>معالجة الصورة والرؤية الحاسوبية — الجلسة الخامسة — 2025/2026</p>
+  </footer>
+</div>
+</body>
+</html>
